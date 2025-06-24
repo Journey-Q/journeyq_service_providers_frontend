@@ -1,82 +1,80 @@
-import React from 'react'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { FiDownload, FiArrowRight } from 'react-icons/fi';
+import logo from '../assets/images/logo.png'
 
 const Navbar = () => {
   return (
-    <div>
-      
-    </div>
-  )
-}
+    <header className="border-b border-gray-100 sticky top-0 bg-white/80 backdrop-blur-sm z-20">
+      <div className="container px-4 mx-auto">
+        <div className="flex items-center justify-between h-16">
+          {/* Branding - with subtle hover effect */}
+          <Link 
+            to="/" 
+            className="flex items-center group"
+            aria-label="JourneyQ Home"
+          >
+            <img 
+              src={logo} 
+              className="w-8 h-8 transition-transform group-hover:rotate-6"
+              alt=""
+            />
+            <span className="ml-2 text-lg font-semibold text-gray-900 font-display">
+              JourneyQ
+            </span>
+          </Link>
 
-export default Navbar
+          {/* Desktop Navigation */}
+          <nav className="items-center hidden space-x-7 md:flex">
+            <Link
+              to="/about"
+              className="text-sm font-medium text-gray-600 hover:[#0B9ED9] transition-colors duration-200"
+            >
+              About
+            </Link>
+            
+            <div className="relative group">
+              <button className="flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-200 rounded-full bg-blue-50 hover:bg-blue-100 transition-all duration-200">
+                <span className="mr-1.5">Get the app</span>
+                <FiDownload className="w-3.5 h-3.5" />
+              </button>
+              <div className="absolute hidden px-2 pt-1 group-hover:block">
+                <div className="w-2 h-2 rotate-45 bg-white border-l border-t border-gray-200 ml-5"></div>
+                <div className="px-3 py-2 text-xs bg-white border border-gray-200 rounded shadow-sm">
+                  Coming soon to app stores
+                </div>
+              </div>
+            </div>
+          </nav>
 
+          {/* Auth Links - with subtle visual hierarchy */}
+          <div className="items-center hidden space-x-4 md:flex">
+            <Link
+              to="/login"
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/register"
+              className="flex items-center px-3.5 py-1.5 text-sm font-medium text-white bg-[#0B9ED9] rounded-full hover:bg-blue-700 transition-colors duration-200"
+            >
+              Get started <FiArrowRight className="ml-1 w-3.5 h-3.5" />
+            </Link>
+          </div>
 
-// import React from "react";
-// import logo from "../assets/images/logo.png";
-// import { Link } from "react-router-dom";
-// import { FiDownload } from "react-icons/fi";
+          {/* Mobile menu button would go here */}
+          <button className="p-1 md:hidden" aria-label="Menu">
+            <div className="w-5 space-y-1">
+              <div className="h-0.5 bg-gray-600"></div>
+              <div className="h-0.5 bg-gray-600"></div>
+              <div className="h-0.5 bg-gray-600"></div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
 
-// const Navbar = () => {
-//   return (
-//     <header className="bg-white shadow-sm sticky top-0 z-50">
-//       <nav className="max-w-[1280px] mx-auto px-6 py-4">
-//         <div className="flex items-center justify-between">
-//           {/* Logo + Brand Name (Left) */}
-//           <Link
-//             to="/"
-//             className="flex items-center mr-10 no-underline"
-//           >
-//             <img
-//               src={logo}
-//               alt="Journeyq Logo"
-//               className="w-10 h-10 object-cover rounded-lg"
-//             />
-//             <span className="ml-3 text-[#1e293b] font-bold text-xl">
-//               Journeyq
-//             </span>
-//           </Link>
-
-//           {/* Center Navigation Links */}
-//           <div className="flex flex-1 justify-center gap-8">
-//             <Link
-//               to="/about"
-//               className="text-[#1e293b] font-medium text-sm no-underline py-2 hover:text-blue-600 transition-colors"
-//             >
-//               About
-//             </Link>
-//             <Link
-//               to="/contact"
-//               className="text-[#1e293b] font-medium text-sm no-underline py-2 hover:text-blue-600 transition-colors"
-//             >
-//               Contact
-//             </Link>
-//             <button
-//               className="flex items-center gap-2 border border-blue-500 text-blue-500 rounded-md px-4 py-2 font-medium text-sm bg-transparent cursor-pointer hover:bg-blue-50 transition-all"
-//             >
-//               Download the App
-//               <FiDownload className="text-base" />
-//             </button>
-//           </div>
-
-//           {/* Right Navigation Links */}
-//           <div className="flex gap-6 ml-10">
-//             <Link
-//               to="/sign-in"
-//               className="text-[#1F74BF] font-medium text-sm no-underline py-2 hover:text-[#1F74BF] transition-colors"
-//             >
-//               Login
-//             </Link>
-//             <Link
-//               to="/register"
-//               className="bg-blue-500 text-white font-medium text-sm rounded-md px-4 py-2 no-underline hover:bg-[#1F74BF] transition-colors"
-//             >
-//               Register
-//             </Link>
-//           </div>
-//         </div>
-//       </nav>
-//     </header>
-//   );
-// };
-
-// export default Navbar;
+export default Navbar;

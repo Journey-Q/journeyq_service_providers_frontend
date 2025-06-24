@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import Home from './Components/Home'
-import Navbar from './Components/Navbar';
+import Home from './components/Home'
+import Navbar from './components/Navbar';
 
 import './App.css'
 
@@ -9,8 +9,8 @@ import './App.css'
 function App() {
   return (
     <div >
-      {/* <Navbar/> */}
-      <Home/>
+      <Navbar/>
+      <Outlet/>
 
     </div>
   )
