@@ -1,19 +1,27 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import Home from './components/Home'
 import Navbar from './components/Navbar';
-
-import './App.css'
-
+import './App.css';
 
 function App() {
-  return (
-    <div >
-      <Navbar/>
-      <Outlet/>
+  const location = useLocation();
+  
+  // List of paths where Navbar should be hidden
+  const noNavbarPaths = [
+    '/login',
+    // '/register'
+    // Add more paths here as needed
+  ];
+  
+  // Check if current path is in noNavbarPaths
+  const shouldShowNavbar = !noNavbarPaths.includes(location.pathname);
 
+  return (
+    <div className="app-container">
+      {shouldShowNavbar && <Navbar />}
+      <Outlet />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
