@@ -9,7 +9,10 @@ function App() {
   // List of paths where Navbar should be hidden
   const noNavbarPaths = [
     '/login',
-    // '/register'
+    '/register',
+    '/register/hotel',
+    '/register/tour-guide',
+    '/register/travel-agency'
     // Add more paths here as needed
   ];
   

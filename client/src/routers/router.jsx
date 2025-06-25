@@ -15,35 +15,32 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App/>,
-    children:[
+    children: [
       {
-        path: '/',
+        index: true,
         element: <Home/>
       },
-
       {
         path: '/login',
         element: <Login/>
       },
-
       {
         path: '/register',
-        element: <Register/>
-      },
-
-      {
-        path:'/register-hotel',
-        element:<RegisterAsHotel/>
-      },
-
-      {
-        path:'/register-tour-guide',
-        element:<RegisterAsTourGuide/>
-      },
-
-      {
-        path:'/register-travel-agency',
-        element:<RegisterAsTravelAgency/>
+        element: <Register/>,
+        children: [
+          {
+            path: 'hotel',  // Note: removed leading slash
+            element: <RegisterAsHotel/>
+          },
+          {
+            path: 'tour-guide',
+            element: <RegisterAsTourGuide/>
+          },
+          {
+            path: 'travel-agency',
+            element: <RegisterAsTravelAgency/>
+          }
+        ]
       }
     ]
   },
