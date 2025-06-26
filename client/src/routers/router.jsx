@@ -41,7 +41,13 @@ const router = createBrowserRouter([
             element: <RegisterAsTravelAgency/>
           }
         ]
-      }
+      },
+
+      // hotel profile making
+      // {
+      //   path:'/hotel',
+      //   element:
+      // }
     ]
   },
 ]);
