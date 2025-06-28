@@ -35,7 +35,7 @@ const Home = () => {
           
           <Link 
             to="/register" 
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full text-lg transition transform hover:scale-105"
+            className="inline-block bg-[#0B9ED9] hover:bg-[#07C7F2] text-white font-medium py-3 px-8 rounded-full text-lg transition transform hover:scale-105"
           >
             Get Started
           </Link>

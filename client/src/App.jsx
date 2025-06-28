@@ -12,7 +12,7 @@ function App() {
     '/register',
     '/register/hotel',
     '/register/tour-guide',
-    '/register/travel-agency'
+    '/register/travel-agency',
     // Add more paths here as needed
   ];
   

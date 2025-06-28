@@ -11,6 +11,16 @@ import RegisterAsHotel from '../pages/RegisterAsHotel';
 import RegisterAsTourGuide from '../pages/RegisterAsTourGuide';
 import RegisterAsTravelAgency from '../pages/RegisterAsTravelAgency';
 
+//temporarily routing here, these should be private routes
+//hotel
+import HotelDashboard from '../pages/Hotel/Dashboard';
+
+//tour guide
+import TourGuideDashboard from '../pages/TourGuide/Dashboard';
+
+//travel agency
+import TravelAgencyDashboard from '../pages/TravelAgency/Dashboard';
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -48,6 +58,19 @@ const router = createBrowserRouter([
       //   path:'/hotel',
       //   element:
       // }
+
+      // dashboard routes for now, should be private routes this is temporary
+      //paths for hotel
+      {
+        path: '/hotel',
+        children:[
+          {
+            path: 'dashboard',
+            element: <HotelDashboard/>
+          }
+        ]
+
+      }
     ]
   },
 ]);
