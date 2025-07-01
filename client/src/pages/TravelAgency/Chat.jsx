@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from '../../components/SidebarHotel';
+import Sidebar from '../../components/SidebarTravelAgency';
 import { FiMessageSquare, FiSearch, FiPaperclip, FiMic, FiSmile, FiChevronDown } from 'react-icons/fi';
 
 const Chat = () => {

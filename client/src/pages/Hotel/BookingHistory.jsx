@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import SidebarHotel from '../../components/SidebarHotel';
+import Sidebar from '../../components/SidebarHotel';
 import { FiCalendar, FiUser, FiInfo, FiChevronDown, FiFilter, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 const BookingHistory = () => {
@@ -131,7 +131,7 @@ const BookingHistory = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <SidebarHotel />
+      <Sidebar />
       
       <main className="flex-1 p-6 lg:p-8">
         <header className="mb-8">

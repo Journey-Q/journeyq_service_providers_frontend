@@ -31,10 +31,11 @@ const RegisterAsHotel = () => {
     }));
   };
 
+  //redirecting to create profile page for now
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
-    navigate('/registration-success');
+    navigate('/hotel/create-profile');
   };
 
   return (

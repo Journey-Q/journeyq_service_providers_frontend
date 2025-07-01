@@ -1,11 +1,17 @@
-import React from 'react'
+import React from 'react';
+import Sidebar from '../../components/SidebarTourGuide';
 
 const CreateProfile = () => {
   return (
-    <div>
-      create profile - tour guide
+    <div className="flex h-screen">
+      <Sidebar />
+      
+      <div className="flex-1 p-6 bg-gray-100">
+        <h1 className="text-2xl font-semibold mb-4">Create Profile - tour guide</h1>
+        {/* Add your dashboard widgets/stats here */}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default CreateProfile
+export default CreateProfile;

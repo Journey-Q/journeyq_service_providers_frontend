@@ -1,11 +1,17 @@
-import React from 'react'
+import React from 'react';
+import Sidebar from '../../components/SidebarHotel';
 
-const createProfile = () => {
+const CreateProfile = () => {
   return (
-    <div>
-      Create Profile - hotel
+    <div className="flex h-screen">
+      <Sidebar/>
+      
+      <div className="flex-1 p-6 bg-gray-100">
+        <h1 className="text-2xl font-semibold mb-4">Create Profile - Hotel</h1>
+        {/* Add your dashboard widgets/stats here */}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default createProfile
+export default CreateProfile;

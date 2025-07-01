@@ -1,11 +1,17 @@
-import React from 'react'
+import React from 'react';
+import Sidebar from '../../components/SidebarTourGuide';
 
 const BookingHistory = () => {
   return (
-    <div>
-      Booking history - tour guide
+    <div className="flex h-screen">
+      <Sidebar />
+      
+      <div className="flex-1 p-6 bg-gray-100">
+        <h1 className="text-2xl font-semibold mb-4">Booking history - tour guide</h1>
+        {/* Add your dashboard widgets/stats here */}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default BookingHistory
+export default BookingHistory;

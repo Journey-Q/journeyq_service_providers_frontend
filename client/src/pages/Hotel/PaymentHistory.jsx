@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import SidebarHotel from '../../components/SidebarHotel';
+import Sidebar from '../../components/SidebarHotel';
 import { FiDollarSign, FiCalendar, FiUser, FiInfo, FiChevronDown, FiFilter } from 'react-icons/fi';
 
 const PaymentHistory = () => {
@@ -126,7 +126,7 @@ const PaymentHistory = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <SidebarHotel />
+      <Sidebar />
       
       <main className="flex-1 p-6 lg:p-8">
         <header className="mb-8">
@@ -206,14 +206,14 @@ const PaymentHistory = () => {
                 {filteredPayments.length > 0 ? (
                   filteredPayments.map((payment) => (
                     <tr key={payment.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-sm text-blue-600">
+                      <td className="px-6 py-4 text-xs font-mono text-sm text-blue-600">
                         {payment.id}
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-medium">{payment.guest.name}</div>
                         <div className="text-sm text-slate-500">{payment.guest.room}</div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 text-xs py-4">
                         <div className="flex items-center gap-2">
                           <FiCalendar className="text-slate-400" />
                           <span>
@@ -221,7 +221,7 @@ const PaymentHistory = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-6 py-4 text-sm font-medium">
                         <div className="flex items-center gap-2">
                           <FiDollarSign className="text-slate-400" />
                           {formatAmount(payment.amount)}
