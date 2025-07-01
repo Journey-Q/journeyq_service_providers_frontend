@@ -14,9 +14,17 @@ import RegisterAsTravelAgency from '../pages/RegisterAsTravelAgency';
 //temporarily routing here, these should be private routes
 //hotel
 import HotelDashboard from '../pages/Hotel/Dashboard';
+import HotelBookingHistory from '../pages/Hotel/BookingHistory';
+import HotelPaymentHistory from '../pages/Hotel/PaymentHistory';
+import HotelRoomService from '../pages/Hotel/RoomService';
+import HotelCreateProfile from '../pages/Hotel/CreateProfile';
+import HotelSettings from '../pages/Hotel/Settings';
+import HotelPromotions from '../pages/Hotel/Promotions';
+import HotelChat from '../pages/Hotel/Chat';
 
 //tour guide
 import TourGuideDashboard from '../pages/TourGuide/Dashboard';
+import TourGuideChat from '../pages/Chat';
 
 //travel agency
 import TravelAgencyDashboard from '../pages/TravelAgency/Dashboard';
@@ -67,7 +75,40 @@ const router = createBrowserRouter([
           {
             path: 'dashboard',
             element: <HotelDashboard/>
-          }
+          },
+
+          {
+            path: 'booking-history',
+            element: <HotelBookingHistory/>
+          },
+
+          {
+            path: 'payment-history',
+            element: <HotelPaymentHistory/>
+          },
+
+          {
+            path: 'room-service',
+            element: <HotelRoomService/>
+          },
+
+          {
+            path: 'promotions',
+            element: <HotelPromotions/>
+          },
+
+          {
+            path: 'chat',
+            element: <HotelChat/>
+          },
+
+          {
+            path: 'settings',
+            element: <HotelSettings/>
+          },
+
+
+
         ]
 
       }
