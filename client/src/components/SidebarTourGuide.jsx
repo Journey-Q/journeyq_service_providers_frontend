@@ -66,7 +66,7 @@ const SidebarTourGuide = () => {
           <span className="flex items-center">
             <FiMap className="h-5 w-5 text-[#07C7F2] mr-2" />
             <Link to="/tour-guide/tours" className="block w-full">
-              Tours
+              Tour Packages
             </Link>
           </span>
         </li>

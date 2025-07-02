@@ -20,7 +20,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <header className="border-b border-gray-100 sticky top-0 bg-white/80 backdrop-blur-sm z-20 logo-text">
+    <header className="border-b border-gray-200 sticky top-0 bg-white/80 backdrop-blur-sm z-20 logo-text">
       <div className="container px-4 mx-auto">
         <div className="flex items-center justify-between h-16">
           {/* Branding with animated text */}

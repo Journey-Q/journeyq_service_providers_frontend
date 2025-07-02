@@ -21,6 +21,7 @@ import HotelCreateProfile from '../pages/Hotel/CreateProfile';
 import HotelSettings from '../pages/Hotel/Settings';
 import HotelPromotions from '../pages/Hotel/Promotions';
 import HotelChat from '../pages/Hotel/Chat';
+import HotelEditRoomService from '../pages/Hotel/EditRoomService'
 
 //tour guide
 import TourGuideDashboard from '../pages/TourGuide/Dashboard';
@@ -125,6 +126,11 @@ const router = createBrowserRouter([
             element: <HotelSettings/>
           },
 
+          //inside pages, edits, creates
+          {
+            path:'edit-room-service',
+            element: <HotelEditRoomService/>
+          }
 
 
         ]

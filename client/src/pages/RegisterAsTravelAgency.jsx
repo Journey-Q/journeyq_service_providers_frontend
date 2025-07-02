@@ -35,7 +35,7 @@ const RegisterAsTravelAgency = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
-    navigate('/registration-success');
+    navigate('/tour-guide/create-profile');
   };
 
   return (

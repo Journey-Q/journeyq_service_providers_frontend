@@ -160,7 +160,7 @@ const Chat = () => {
                 </div>
               </div>
 
-              <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+              <div className="flex-1 p-4 overflow-y-auto  bg-sky-50">
                 <div className="space-y-3">
                   {activeChat.messages.map(message => (
                     <div
@@ -168,7 +168,7 @@ const Chat = () => {
                       className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === 'me' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-200'}`}
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === 'me' ? 'bg-[#2953A6] text-white' : 'bg-white border border-gray-200'}`}
                       >
                         <p>{message.text}</p>
                         <p className={`text-xs mt-1 ${message.sender === 'me' ? 'text-blue-100' : 'text-gray-500'}`}>
@@ -194,11 +194,11 @@ const Chat = () => {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Type a message..."
-                    className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[blue-500] focus:border-transparent"
                   />
                   <button
                     onClick={handleSendMessage}
-                    className="ml-2 p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600"
+                    className="ml-2 p-2 rounded-full bg-[#0B9ED9] text-white hover:bg-blue-600"
                   >
                     <FiMessageSquare />
                   </button>
