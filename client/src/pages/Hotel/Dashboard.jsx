@@ -193,7 +193,7 @@ const Dashboard = () => {
                           Room {b.room} • {b.checkIn} to {b.checkOut}
                         </p>
                         <p className="mt-1 text-sm font-medium text-[#0088cc]">
-                          ${b.amount}
+                          {b.amount}
                         </p>
                       </div>
                     </div>
