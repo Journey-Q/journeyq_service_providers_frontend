@@ -48,7 +48,12 @@ const SidebarHotel = () => {
             },
             { path: '/hotel/settings', icon: FiSettings, label: 'Settings' },
           ].map((item) => (
-            <li key={item.path}>
+            <li key={item.path} className="relative">
+              {/* Active indicator line */}
+              {location.pathname === item.path && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#2953A6] to-[#07C7F2] rounded-r-full"></div>
+              )}
+              
               <Link 
                 to={item.path}
                 className={`flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
