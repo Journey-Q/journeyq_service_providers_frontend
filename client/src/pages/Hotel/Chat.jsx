@@ -88,14 +88,6 @@ const Chat = () => {
         <div className="w-1/3 border-r border-gray-200 bg-white flex flex-col">
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-slate-800">Messages</h2>
-            <div className="relative mt-3">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search conversations..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
           </div>
           
           <div className="flex-1 overflow-y-auto">
@@ -168,7 +160,7 @@ const Chat = () => {
                       className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === 'me' ? 'bg-[#2953A6] text-white' : 'bg-white border border-gray-200'}`}
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === 'me' ? 'bg-[#0B9ED9] text-white' : 'bg-white border border-gray-200'}`}
                       >
                         <p>{message.text}</p>
                         <p className={`text-xs mt-1 ${message.sender === 'me' ? 'text-blue-100' : 'text-gray-500'}`}>
@@ -182,12 +174,7 @@ const Chat = () => {
 
               <div className="p-4 border-t border-gray-200 bg-white">
                 <div className="flex items-center">
-                  <button className="p-2 rounded-full hover:bg-gray-100 mr-2">
-                    <FiPaperclip className="text-gray-500" />
-                  </button>
-                  <button className="p-2 rounded-full hover:bg-gray-100 mr-2">
-                    <FiSmile className="text-gray-500" />
-                  </button>
+                  
                   <input
                     type="text"
                     value={newMessage}

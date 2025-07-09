@@ -76,12 +76,6 @@ const Settings = () => {
       
       <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Settings</h1>
-            <p className="text-gray-600">Manage your hotel profile and account preferences</p>
-          </div>
-
           {/* Profile Section */}
           <div className="bg-white rounded-xl shadow-md mb-8 border border-gray-100">
             <div className="p-6 border-b border-gray-200">
@@ -256,58 +250,7 @@ const Settings = () => {
               )}
             </div>
           </div>
-
-          {/* Notification Settings */}
-          <div className="bg-white rounded-xl shadow-md mb-8 border border-gray-100">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center space-x-3">
-                <div className="bg-purple-100 p-3 rounded-lg">
-                  <Bell className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800">Notification Preferences</h2>
-                  <p className="text-gray-600">Manage how you receive notifications</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="space-y-4">
-                {Object.entries(securitySettings).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        {key === 'emailNotifications' && 'Email Notifications'}
-                        {key === 'bookingAlerts' && 'Booking Alerts'}
-                        {key === 'marketingEmails' && 'Marketing Emails'}
-                        {key === 'twoFactorAuth' && 'Two-Factor Authentication'}
-                        {key === 'loginAlerts' && 'Login Alerts'}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {key === 'emailNotifications' && 'Receive general email notifications'}
-                        {key === 'bookingAlerts' && 'Get notified about new bookings'}
-                        {key === 'marketingEmails' && 'Receive promotional content'}
-                        {key === 'twoFactorAuth' && 'Add extra security to your account'}
-                        {key === 'loginAlerts' && 'Get notified of account logins'}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleSecurityChange(key, !value)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        value ? 'bg-[#0088cc]' : 'bg-gray-200'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          value ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+ 
 
           {/* Security Settings */}
           <div className="bg-white rounded-xl shadow-md mb-8 border border-gray-100">

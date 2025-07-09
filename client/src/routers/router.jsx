@@ -22,6 +22,7 @@ import HotelSettings from '../pages/Hotel/Settings';
 import HotelPromotions from '../pages/Hotel/Promotions';
 import HotelChat from '../pages/Hotel/Chat';
 import HotelEditRoomService from '../pages/Hotel/EditRoomService'
+import BankDetailsPage from "../pages/Hotel/Bankdetail";
 
 //tour guide
 import TourGuideDashboard from '../pages/TourGuide/Dashboard';
@@ -114,6 +115,12 @@ const router = createBrowserRouter([
           {
             path: 'promotions',
             element: <HotelPromotions/>
+          },
+
+
+          {
+            path: 'bankdetails',
+            element: <BankDetailsPage/>
           },
 
           {
