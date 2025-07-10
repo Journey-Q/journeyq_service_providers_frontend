@@ -52,8 +52,8 @@ const Settings = () => {
           <div className="bg-white rounded-xl shadow-md border border-gray-100 mb-8">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <div className="flex items-center space-x-3">
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
+                <div className="bg-sky-100 p-3 rounded-lg">
+                  <Briefcase className="w-6 h-6 text-sky-600" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-800">Company Profile</h2>
@@ -63,7 +63,7 @@ const Settings = () => {
               <button
                 onClick={() => setIsEditing(!isEditing)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 ${
-                  isEditing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'
+                  isEditing ? 'bg-gray-200 text-gray-700' : 'bg-sky-600 text-white'
                 }`}
               >
                 {isEditing ? <><X className="w-4 h-4" /><span>Cancel</span></> : <><Edit2 className="w-4 h-4" /><span>Edit</span></>}
@@ -84,20 +84,20 @@ const Settings = () => {
                   <Input label="Number of Guides" type="number" value={companyData.numberOfGuides} onChange={val => handleChange('numberOfGuides', val)} />
                   <TextArea label="Description" value={companyData.description} onChange={val => handleChange('description', val)} />
                   <div className="flex justify-end">
-                    <button onClick={saveChanges} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <button onClick={saveChanges} className="bg-sky-600 text-white px-6 py-2 rounded-lg hover:bg-sky-700 transition">
                       <Save className="w-4 h-4 mr-2" /> Save Changes
                     </button>
                   </div>
                 </>
               ) : (
                 <>
-                  <Display label="Company Name" value={companyData.companyName} icon={<User className="w-5 h-5 text-blue-600" />} />
-                  <Display label="Email" value={companyData.email} icon={<Mail className="w-5 h-5 text-blue-600" />} />
-                  <Display label="Phone" value={companyData.phone} icon={<Phone className="w-5 h-5 text-blue-600" />} />
-                  <Display label="Address" value={companyData.address} icon={<MapPin className="w-5 h-5 text-blue-600" />} />
-                  <Display label="Website" value={companyData.website} icon={<Globe className="w-5 h-5 text-blue-600" />} />
-                  {/* <Display label="Operating Since" value={companyData.operatingSince} icon={<Calendar className="w-5 h-5 text-blue-600" />} /> */}
-                  <Display label="Number of Guides" value={companyData.numberOfGuides} icon={<User className="w-5 h-5 text-blue-600" />} />
+                  <Display label="Company Name" value={companyData.companyName} icon={<User className="w-5 h-5 text-sky-600" />} />
+                  <Display label="Email" value={companyData.email} icon={<Mail className="w-5 h-5 text-sky-600" />} />
+                  <Display label="Phone" value={companyData.phone} icon={<Phone className="w-5 h-5 text-sky-600" />} />
+                  <Display label="Address" value={companyData.address} icon={<MapPin className="w-5 h-5 text-sky-600" />} />
+                  <Display label="Website" value={companyData.website} icon={<Globe className="w-5 h-5 text-sky-600" />} />
+                  {/* <Display label="Operating Since" value={companyData.operatingSince} icon={<Calendar className="w-5 h-5 text-sky-600" />} /> */}
+                  <Display label="Number of Guides" value={companyData.numberOfGuides} icon={<User className="w-5 h-5 text-sky-600" />} />
                   <Display label="Description" value={companyData.description} />
                 </>
               )}
@@ -121,14 +121,14 @@ const Settings = () => {
                 className="w-full flex justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
                 <div className="flex items-center space-x-3">
-                  <Lock className="w-5 h-5 text-blue-600" />
+                  <Lock className="w-5 h-5 text-sky-600" />
                   <span className="text-gray-800 font-medium">Change Password</span>
                 </div>
                 <Edit2 className="w-4 h-4 text-gray-400" />
               </button>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <Cog className="w-5 h-5 text-blue-600" />
+                  <Cog className="w-5 h-5 text-sky-600" />
                   <span className="text-gray-800 font-medium">Account is Active</span>
                 </div>
                 <span className="text-sm text-green-800 bg-green-100 px-3 py-1 rounded-full">Active</span>
@@ -217,7 +217,7 @@ const Settings = () => {
                     <button onClick={() => {
                       alert('Password updated successfully!');
                       setShowPasswordModal(false);
-                    }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    }} className="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700">
                       Update Password
                     </button>
                   </div>
@@ -240,7 +240,7 @@ const Input = ({ label, value, onChange, type = "text" }) => (
       type={type}
       value={value}
       onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-blue-500"
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-sky-500"
     />
   </div>
 );
@@ -251,7 +251,7 @@ const TextArea = ({ label, value, onChange }) => (
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none focus:outline-blue-500"
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none focus:outline-sky-500"
       rows={3}
     />
   </div>
