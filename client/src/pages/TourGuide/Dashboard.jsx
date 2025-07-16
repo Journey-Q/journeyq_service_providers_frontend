@@ -4,6 +4,8 @@ import {
   Users,
   DollarSign,
   Map,
+  ChevronRight,
+  // Hiking
 } from 'lucide-react';
 
 import Sidebar from '../../components/SidebarTourGuide'; 
@@ -29,29 +31,30 @@ const DashboardTourGuide = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'booked': return 'bg-yellow-100 text-yellow-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'booked': return 'bg-amber-50 text-amber-600 border border-amber-200';
+      case 'in-progress': return 'bg-blue-50 text-blue-600 border border-blue-200';
+      case 'completed': return 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+      default: return 'bg-gray-50 text-gray-600 border border-gray-200';
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-stone-50">
       <Sidebar />
 
-      <div className="flex-1 p-8 overflow-y-auto">
+      <div className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <div className="flex space-x-4">
+          <div className="mb-8 flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-stone-800">Tour Guide Dashboard</h1>
+            <div className="flex space-x-2 bg-white p-1 rounded-lg shadow-inner border border-stone-200">
               {['weekly', 'monthly', 'yearly'].map((period) => (
                 <button
                   key={period}
                   onClick={() => setSelectedPeriod(period)}
-                  className={`px-6 py-2 rounded-lg font-medium capitalize transition-colors ${
+                  className={`px-4 py-1 rounded-md text-sm font-medium capitalize transition-colors ${
                     selectedPeriod === period
-                      ? 'bg-[#0B9ED9] text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'text-stone-600 hover:bg-stone-100'
                   }`}
                 >
                   {period}
@@ -60,90 +63,115 @@ const DashboardTourGuide = () => {
             </div>
           </div>
 
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+            <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl shadow-sm p-6 border border-teal-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Tours This Period</p>
-                  <p className="mt-1 text-3xl font-bold text-gray-800">{currentStats.tours}</p>
+                  <p className="text-sm font-medium text-teal-800">Tours This Period</p>
+                  <p className="mt-1 text-3xl font-bold text-teal-900">{currentStats.tours}</p>
+                  <p className="text-xs mt-1 text-teal-700">+12% from last period</p>
                 </div>
-                <div className="p-3 rounded-lg bg-[#2953A6]/10">
-                  <Calendar className="w-8 h-8 text-[#2953A6]" />
+                <div className="p-3 rounded-full bg-white/50 backdrop-blur-sm">
+                  {/* <Hiking className="w-6 h-6 text-teal-700" /> */}
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl shadow-sm p-6 border border-amber-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Revenue</p>
-                  <p className="mt-1 text-3xl font-bold text-gray-800">
+                  <p className="text-sm font-medium text-amber-800">Revenue</p>
+                  <p className="mt-1 text-3xl font-bold text-amber-900">
                     Rs.{currentStats.revenue.toLocaleString()}
                   </p>
+                  <p className="text-xs mt-1 text-amber-700">+8% from last period</p>
                 </div>
-                <div className="p-3 rounded-lg bg-green-100">
-                  <DollarSign className="w-8 h-8 text-green-600" />
+                <div className="p-3 rounded-full bg-white/50 backdrop-blur-sm">
+                  <DollarSign className="w-6 h-6 text-amber-700" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl shadow-sm p-6 border border-indigo-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Available Guides</p>
-                  <p className="mt-1 text-3xl font-bold text-gray-800">{currentStats.guides}</p>
+                  <p className="text-sm font-medium text-indigo-800">Available Guides</p>
+                  <p className="mt-1 text-3xl font-bold text-indigo-900">{currentStats.guides}</p>
+                  <p className="text-xs mt-1 text-indigo-700">+2 from last month</p>
                 </div>
-                <div className="p-3 rounded-lg bg-purple-100">
-                  <Users className="w-8 h-8 text-purple-600" />
+                <div className="p-3 rounded-full bg-white/50 backdrop-blur-sm">
+                  <Users className="w-6 h-6 text-indigo-700" />
                 </div>
               </div>
             </div>
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <section className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col h-150">
-              <header className="p-4 border-b border-gray-100 flex-shrink-0">
-                <h2 className="text-xl font-bold text-gray-800">Recent Tours</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section className="bg-white rounded-2xl shadow-sm border border-stone-200 lg:col-span-2">
+              <header className="p-5 border-b border-stone-200">
+                <h2 className="text-lg font-semibold text-stone-800 flex items-center">
+                  <Map className="w-5 h-5 mr-2 text-teal-600" />
+                  Upcoming Tours
+                </h2>
               </header>
 
-              <div className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {recentTours.map((tour) => (
-                    <div
-                      key={tour.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-800 text-sm">
-                            {tour.name}
-                          </h3>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tour.status)}`}
-                          >
-                            {tour.status}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600">
-                          {tour.guide} • {tour.from} to {tour.to}
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-[#2953A6]">
-                          {tour.amount}
+              <div className="divide-y divide-stone-100">
+                {recentTours.map((tour) => (
+                  <div
+                    key={tour.id}
+                    className="p-4 hover:bg-stone-50 transition-colors flex items-center justify-between"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className={`p-2 rounded-lg ${getStatusColor(tour.status)}`}>
+                        {tour.status === 'booked' && <Calendar className="w-5 h-5" />}
+                        {tour.status === 'in-progress' && <Map className="w-5 h-5" />}
+                        {/* {tour.status === 'completed' && <Hiking className="w-5 h-5" />} */}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-stone-800">{tour.name}</h3>
+                        <p className="text-sm text-stone-500">
+                          {tour.from} - {tour.to} • {tour.guide}
                         </p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center space-x-4">
+                      <span className="font-medium text-stone-700">{tour.amount}</span>
+                      <ChevronRight className="w-5 h-5 text-stone-400" />
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                <div className="p-4 border-t border-gray-100 flex-shrink-0">
-                  <button className="w-full px-4 py-2 bg-[#1F74BF] text-white rounded-lg transition-colors font-medium">
-                    View All Tours
-                  </button>
-                </div>
+              <div className="p-4 border-t border-stone-200 text-center">
+                <button className="text-sm font-medium text-teal-600 hover:text-teal-800 transition-colors">
+                  View all tours →
+                </button>
               </div>
             </section>
 
             <TourGuideOverview />
+          </div>
+
+          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-stone-200 p-5">
+            <h2 className="text-lg font-semibold text-stone-800 mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <button className="p-4 bg-teal-50 hover:bg-teal-100 rounded-xl border border-teal-200 transition-colors flex flex-col items-center">
+                <Calendar className="w-6 h-6 text-teal-600 mb-2" />
+                <span className="text-sm font-medium text-teal-800">Schedule Tour</span>
+              </button>
+              <button className="p-4 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 transition-colors flex flex-col items-center">
+                <Users className="w-6 h-6 text-amber-600 mb-2" />
+                <span className="text-sm font-medium text-amber-800">Manage Clients</span>
+              </button>
+              <button className="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-xl border border-indigo-200 transition-colors flex flex-col items-center">
+                <Map className="w-6 h-6 text-indigo-600 mb-2" />
+                <span className="text-sm font-medium text-indigo-800">Tour Routes</span>
+              </button>
+              <button className="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors flex flex-col items-center">
+                <DollarSign className="w-6 h-6 text-emerald-600 mb-2" />
+                <span className="text-sm font-medium text-emerald-800">Earnings</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
