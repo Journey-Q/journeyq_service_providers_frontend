@@ -8,7 +8,7 @@ const VehicleOverview = () => {
     {
       id: 1,
       name: "Toyota Prius",
-      image: "https://images.unsplash.com/photo-1583267746890-3b89c7e5a4e3?auto=format&fit=crop&w=500&q=60",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/2024_Toyota_Prius_Excel_PHEV_-_1987cc_2.0_%28225PS%29_Plug-in_Hybrid_-_Silver_Metallic_-_10-2024%2C_Front_Quarter.jpg/500px-2024_Toyota_Prius_Excel_PHEV_-_1987cc_2.0_%28225PS%29_Plug-in_Hybrid_-_Silver_Metallic_-_10-2024%2C_Front_Quarter.jpg",
       pricePerDay: 3000,
       seats: 4,
       features: ["Hybrid", "Air Conditioning", "Automatic"],
@@ -17,7 +17,7 @@ const VehicleOverview = () => {
     {
       id: 2,
       name: "Nissan Caravan",
-      image: "https://images.unsplash.com/photo-1603732551685-6483ac55b02f?auto=format&fit=crop&w=500&q=60",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Nissan_NV350_Caravan_VR2E26.jpg/500px-Nissan_NV350_Caravan_VR2E26.jpg",
       pricePerDay: 4500,
       seats: 10,
       features: ["Spacious", "AC", "Manual"],
@@ -26,7 +26,7 @@ const VehicleOverview = () => {
     {
       id: 3,
       name: "Suzuki Alto",
-      image: "https://images.unsplash.com/photo-1601239442949-3c4d285a0bd7?auto=format&fit=crop&w=500&q=60",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/1994-1997_Suzuki_Alto.jpg/500px-1994-1997_Suzuki_Alto.jpg",
       pricePerDay: 2000,
       seats: 4,
       features: ["Compact", "Economical", "Automatic"],
@@ -40,7 +40,7 @@ const VehicleOverview = () => {
   const maintenanceCount = 2;
 
   return (
-    <section className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col h-full">
+    <section className="bg-white shadow-md border border-gray-100 flex flex-col h-full">
       <header className="p-4 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-800">Available Vehicles</h2>
@@ -114,7 +114,7 @@ const VehicleOverview = () => {
             </span>
           </div>
           <Link 
-            to="/travel/vehicle-management"
+            to="/travel-agency/vehicles"
             className="block w-full px-4 py-2 bg-[#1F74BF] text-white text-center rounded-lg transition-colors font-medium text-sm"
           >
             Manage All Vehicles

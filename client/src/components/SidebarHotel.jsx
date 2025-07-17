@@ -10,6 +10,7 @@ import {
   FiSettings,
   FiLogOut,
   FiUser,
+  FiStar,
 } from 'react-icons/fi';
 import { AiOutlineBank } from 'react-icons/ai';
 
@@ -24,7 +25,7 @@ const SidebarHotel = () => {
           <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center border border-blue-200">
             <FiUser className="text-[#2953A6] text-xl" />
           </div>
-          
+
           <div className="flex flex-col justify-center">
             <h1 className="text-lg font-semibold text-black leading-tight font-poppins">
               Hotel Quasar
@@ -52,6 +53,7 @@ const SidebarHotel = () => {
               label: 'Messages',
               badge: 3
             },
+            { path: '/hotel/reviews', icon: FiStar, label: 'Reviews & Ratings' }, // NEW ITEM
             { path: '/hotel/settings', icon: FiSettings, label: 'Settings' },
           ].map((item) => (
             <li key={item.path} className="relative">
@@ -59,7 +61,7 @@ const SidebarHotel = () => {
               {location.pathname === item.path && (
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#2953A6] to-[#07C7F2] rounded-r-full"></div>
               )}
-              
+
               <Link
                 to={item.path}
                 className={`flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
@@ -69,9 +71,11 @@ const SidebarHotel = () => {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon className={`h-5 w-5 ${
-                    location.pathname === item.path ? 'text-[#2953A6]' : 'text-gray-500'
-                  }`} />
+                  <item.icon
+                    className={`h-5 w-5 ${
+                      location.pathname === item.path ? 'text-[#2953A6]' : 'text-gray-500'
+                    }`}
+                  />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (

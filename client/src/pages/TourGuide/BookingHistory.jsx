@@ -10,7 +10,6 @@ const BookingHistory = () => {
         name: 'Nimal Perera',
         email: 'nimal.p@example.com',
         phone: '+94 71 123 4567',
-        address: 'No. 42, Flower Road, Colombo 07'
       },
       tourName: 'Kandy Day Tour',
       tourGuide: 'Kasun Jayasinghe',
@@ -28,7 +27,7 @@ const BookingHistory = () => {
         name: 'Samantha de Silva',
         email: 'samantha.d@example.com',
         phone: '+94 77 987 6543',
-        address: 'No. 15, Beach Road, Matara'
+
       },
       tourName: 'Sigiriya & Dambulla',
       tourGuide: 'Tharindu Fernando',
@@ -46,7 +45,7 @@ const BookingHistory = () => {
         name: 'Ashan Weerasinghe',
         email: 'ashan.w@example.com',
         phone: '+94 76 555 7890',
-        address: 'No. 90, Temple Road, Anuradhapura'
+
       },
       tourName: 'Ella Adventure Tour',
       tourGuide: 'Dinuka Rathnayake',
@@ -161,7 +160,6 @@ const BookingHistory = () => {
                         <p>{booking.guest.name}</p>
                         <p className="text-sm text-gray-600">{booking.guest.email}</p>
                         <p className="text-sm text-gray-600">{booking.guest.phone}</p>
-                        <p className="text-sm text-gray-600">{booking.guest.address}</p>
                       </div>
 
                       <div>

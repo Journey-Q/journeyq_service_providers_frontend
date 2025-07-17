@@ -10,8 +10,10 @@ import {
   FiMessageSquare,
   FiSettings,
   FiLogOut,
-  FiUser
+  FiUser,
+  FiStar
 } from 'react-icons/fi';
+import { AiOutlineBank } from 'react-icons/ai';
 
 const SidebarTourGuide = () => {
   const location = useLocation();
@@ -37,6 +39,7 @@ const SidebarTourGuide = () => {
             { path: '/tour-guide/dashboard', icon: FiHome, label: 'Dashboard' },
             { path: '/tour-guide/booking-history', icon: FiCalendar, label: 'Booking History' },
             { path: '/tour-guide/payment-history', icon: FiDollarSign, label: 'Payment History' },
+            { path: '/tour-guide/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
             { path: '/tour-guide/tours', icon: FiMap, label: 'Tour Packages' },
             { path: '/tour-guide/promotions', icon: FiTag, label: 'Promotions' },
             { 
@@ -45,7 +48,9 @@ const SidebarTourGuide = () => {
               label: 'Chat',
               badge: 3 
             },
+            { path: '/tour-guide/reviews', icon: FiStar, label: 'Reviews & Ratings' },
             { path: '/tour-guide/settings', icon: FiSettings, label: 'Settings' },
+
           ].map((item) => (
             <li key={item.path} className="relative">
               {/* Active indicator line */}

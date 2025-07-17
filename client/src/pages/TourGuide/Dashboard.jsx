@@ -149,7 +149,7 @@ const DashboardTourGuide = () => {
               </div>
             </section>
 
-            <TourGuideOverview />
+            {/* <TourGuideOverview /> */}
           </div>
 
           <div className="mt-6 bg-white rounded-2xl shadow-sm border border-stone-200 p-5">

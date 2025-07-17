@@ -8,12 +8,14 @@ import {
   Mail,
   Phone,
   MapPin,
-  Globe,
   Shield,
   Trash2,
   AlertTriangle,
   Lock,
-  Cog
+  Cog,
+  Star,
+  Calendar,
+  Camera
 } from 'lucide-react';
 
 const Settings = () => {
@@ -22,11 +24,13 @@ const Settings = () => {
     email: 'contact@wanderways.com',
     phone: '+94 76 123 4567',
     address: '45 Paradise Lane, Kandy, Sri Lanka',
-    website: 'www.wanderways.com',
     description: 'We specialize in guided tours, vehicle rentals, and custom holiday packages across Sri Lanka.',
-    foundedYear: '2015',
-    fleetSize: 12
+    establishedYear: '2015',
+    fleetSize: 12,
+    rating: 4.7
   });
+
+  const [profileImage] = useState('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
 
   const [isEditing, setIsEditing] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
@@ -94,16 +98,45 @@ const Settings = () => {
             <div className="p-6 space-y-6">
               {isEditing ? (
                 <>
+                  {/* Profile Image */}
+                  <div className="flex items-center space-x-6">
+                    <div className="relative">
+                      <img 
+                        src={profileImage} 
+                        alt="Agency" 
+                        className="w-24 h-24 rounded-lg object-cover"
+                      />
+                      <button className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-md transform translate-x-1 translate-y-1 hover:bg-blue-700">
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Agency Logo</p>
+                      <button className="text-blue-600 text-sm font-medium">Change Image</button>
+                    </div>
+                  </div>
+
                   <Input label="Agency Name" value={agencyData.agencyName} onChange={val => handleChange('agencyName', val)} />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Email" value={agencyData.email} onChange={val => handleChange('email', val)} />
                     <Input label="Phone" value={agencyData.phone} onChange={val => handleChange('phone', val)} />
                   </div>
                   <Input label="Address" value={agencyData.address} onChange={val => handleChange('address', val)} />
-                  <Input label="Website" value={agencyData.website} onChange={val => handleChange('website', val)} />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input label="Founded Year" value={agencyData.foundedYear} onChange={val => handleChange('foundedYear', val)} />
+                    <Input label="Established Year" value={agencyData.establishedYear} onChange={val => handleChange('establishedYear', val)} />
                     <Input label="Fleet Size" value={agencyData.fleetSize} onChange={val => handleChange('fleetSize', val)} type="number" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">Rating</label>
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          className={`w-5 h-5 ${i < Math.floor(agencyData.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+                        />
+                      ))}
+                      <span className="ml-2 text-gray-700">{agencyData.rating}</span>
+                    </div>
                   </div>
                   <TextArea label="Description" value={agencyData.description} onChange={val => handleChange('description', val)} />
                   <div className="flex justify-end">
@@ -116,15 +149,41 @@ const Settings = () => {
                   </div>
                 </>
               ) : (
-                <div className="space-y-4">
-                  <Display label="Agency Name" value={agencyData.agencyName} />
-                  <Display label="Email" value={agencyData.email} />
-                  <Display label="Phone" value={agencyData.phone} />
-                  <Display label="Address" value={agencyData.address} />
-                  <Display label="Website" value={agencyData.website} />
-                  <Display label="Founded Year" value={agencyData.foundedYear} />
-                  <Display label="Fleet Size" value={agencyData.fleetSize} />
-                  <Display label="Description" value={agencyData.description} />
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    {/* Left Column - Image */}
+                    <div className="md:w-1/3">
+                      <div className="relative">
+                        <img 
+                          src={profileImage} 
+                          alt="Agency" 
+                          className="w-full h-48 md:h-64 rounded-lg object-cover"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-lg">
+                          <h3 className="text-white font-bold text-lg">{agencyData.agencyName}</h3>
+                          <div className="flex items-center space-x-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star 
+                                key={i} 
+                                className={`w-4 h-4 ${i < Math.floor(agencyData.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+                              />
+                            ))}
+                            <span className="text-white text-sm ml-1">{agencyData.rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Right Column - Details */}
+                    <div className="md:w-2/3 space-y-4">
+                      <Display label="Email" value={agencyData.email} />
+                      <Display label="Phone" value={agencyData.phone} />
+                      <Display label="Address" value={agencyData.address} />
+                      <Display label="Established Year" value={agencyData.establishedYear} icon={<Calendar className="w-4 h-4 text-blue-600" />} />
+                      <Display label="Fleet Size" value={agencyData.fleetSize} />
+                      <Display label="Description" value={agencyData.description} />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -284,10 +343,13 @@ const TextArea = ({ label, value, onChange }) => (
   </div>
 );
 
-const Display = ({ label, value }) => (
+const Display = ({ label, value, icon }) => (
   <div>
-    <p className="text-sm text-gray-600">{label}</p>
-    <p className="font-medium text-gray-800">{value}</p>
+    <p className="text-sm text-gray-600 flex items-center">
+      {icon && <span className="mr-2">{icon}</span>}
+      {label}
+    </p>
+    <p className="font-medium text-gray-800 mt-1">{value}</p>
   </div>
 );
 

@@ -129,12 +129,12 @@ const PaymentHistory = () => {
       <Sidebar />
       
       <main className="flex-1 p-6 lg:p-8">
-        <header className="mb-8">
+        {/* <header className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800">Payment Transactions</h1>
           <p className="text-slate-600 mt-2">
             Review and manage recent guest payments and transactions
           </p>
-        </header>
+        </header> */}
 
         {/* Filter Section */}
         <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">

@@ -20,10 +20,10 @@ const Dashboard = () => {
   };
 
   const recentRentals = [
-    { id: 'VR001', customer: 'John Smith', vehicle: 'Toyota Prius', pickup: 'Jul 01', return: 'Jul 04', amount: 'Rs. 8500', status: 'returned' },
-    { id: 'VR002', customer: 'Jane Doe', vehicle: 'Suzuki Alto', pickup: 'Jul 03', return: 'Jul 05', amount: 'Rs. 5000', status: 'booked' },
-    { id: 'VR003', customer: 'David Lee', vehicle: 'Nissan Caravan', pickup: 'Jul 02', return: 'Jul 08', amount: 'Rs. 12000', status: 'in-use' },
-    { id: 'VR004', customer: 'Emma Brown', vehicle: 'Toyota Hiace', pickup: 'Jul 05', return: 'Jul 10', amount: 'Rs. 15000', status: 'booked' },
+    { id: 'VR001', customer: 'Kamal Perera', vehicle: 'Toyota Prius', pickup: 'Jul 01', return: 'Jul 04', amount: 'LKR 8500', status: 'returned' },
+    { id: 'VR002', customer: 'Sunil Jayarathna', vehicle: 'Suzuki Alto', pickup: 'Jul 03', return: 'Jul 05', amount: 'LKR 5000', status: 'booked' },
+    { id: 'VR003', customer: 'W.A. Silva', vehicle: 'Nissan Caravan', pickup: 'Jul 02', return: 'Jul 08', amount: 'LKR 12000', status: 'in-use' },
+    { id: 'VR004', customer: 'Martin Wickramasinghe', vehicle: 'Toyota Hiace', pickup: 'Jul 05', return: 'Jul 10', amount: 'LKR 15000', status: 'booked' },
   ];
 
   const currentStats = rentalStats[selectedPeriod];
@@ -82,7 +82,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Revenue</p>
                   <p className="mt-1 text-3xl font-bold text-gray-800">
-                    Rs.{currentStats.revenue.toLocaleString()}
+                    LKR {currentStats.revenue.toLocaleString()}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-green-100">
@@ -104,11 +104,11 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* Layout with recent rentals and vehicle overview */}
+          {/* Layout with Recent Hires and vehicle overview */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <section className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col h-150">
               <header className="p-4 border-b border-gray-100 flex-shrink-0">
-                <h2 className="text-xl font-bold text-gray-800">Recent Rentals</h2>
+                <h2 className="text-xl font-bold text-gray-800">Recent Hires</h2>
               </header>
 
               <div className="flex-1 overflow-hidden flex flex-col">

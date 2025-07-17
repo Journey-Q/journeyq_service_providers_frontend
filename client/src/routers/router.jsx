@@ -22,7 +22,8 @@ import HotelSettings from '../pages/Hotel/Settings';
 import HotelPromotions from '../pages/Hotel/Promotions';
 import HotelChat from '../pages/Hotel/Chat';
 import HotelEditRoomService from '../pages/Hotel/EditRoomService'
-import BankDetailsPage from "../pages/Hotel/Bankdetail";
+import HotelBankDetails from "../pages/Hotel/Bankdetail";
+import HotelReview from "../pages/Hotel/Reviews";
 
 //tour guide
 import TourGuideDashboard from '../pages/TourGuide/Dashboard';
@@ -33,6 +34,9 @@ import TourGuideCreateProfile from '../pages/TourGuide/CreateProfile'
 import TourGuideSettings from '../pages/TourGuide/Settings'
 import TourGuideTours from '../pages/TourGuide/Tours'
 import TourGuidePromotions from '../pages/TourGuide/Promotions'
+import TourGuideReview from "../pages/TourGuide/Reviews"
+import TourGuideBankDetails from '../pages/TourGuide/Bankdetail'
+import TourGuideDisplayTours from '../pages/TourGuide/DisplayTour'
 
 //travel agency
 import TravelAgencyDashboard from '../pages/TravelAgency/Dashboard';
@@ -43,6 +47,8 @@ import TravelAgencyCreateProfile from '../pages/TravelAgency/CreateProfile'
 import TravelAgencySettings from '../pages/TravelAgency/Settings'
 import TravelAgencyVehicles from '../pages/TravelAgency/Vehicles'
 import TravelAgencyPromotions from '../pages/TravelAgency/Promotions'
+import TravelAgencyReview from '../pages/TravelAgency/Reviews'
+import TravelAgencyBankDetails from '../pages/TravelAgency/Bankdetail'
 
 const router = createBrowserRouter([
   {
@@ -120,7 +126,7 @@ const router = createBrowserRouter([
 
           {
             path: 'bankdetails',
-            element: <BankDetailsPage/>
+            element: <HotelBankDetails/>
           },
 
           {
@@ -131,6 +137,11 @@ const router = createBrowserRouter([
           {
             path: 'settings',
             element: <HotelSettings/>
+          },
+
+          {
+            path: 'reviews',
+            element: <HotelReview/>
           },
 
           //inside pages, edits, creates
@@ -185,6 +196,21 @@ const router = createBrowserRouter([
             },
 
             {
+            path: 'bankdetails',
+            element: <TourGuideBankDetails/>
+          },
+
+          {
+              path:'tour-details/:id',
+              element:<TourGuideDisplayTours/>
+            },
+
+            {
+            path: 'reviews',
+            element: <TourGuideReview/>
+          },
+
+            {
               path:'create-profile',
               element: <TourGuideCreateProfile/>
             }
@@ -227,8 +253,18 @@ const router = createBrowserRouter([
           },
 
           {
+            path: 'bankdetails',
+            element: <TravelAgencyBankDetails/>
+          },
+
+          {
             path: 'create-profile',
             element: <TravelAgencyCreateProfile/>
+          },
+
+          {
+            path: 'reviews',
+            element: <TravelAgencyReview/>
           },
 
           {

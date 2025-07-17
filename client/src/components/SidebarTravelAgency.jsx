@@ -9,8 +9,10 @@ import {
   FiMessageSquare,
   FiSettings,
   FiLogOut,
-  FiUser
+  FiUser,
+  FiStar
 } from 'react-icons/fi';
+import { AiOutlineBank } from 'react-icons/ai';
 
 const SidebarTravelAgency = () => {
   const location = useLocation();
@@ -36,6 +38,7 @@ const SidebarTravelAgency = () => {
             { path: '/travel-agency/dashboard', icon: FiHome, label: 'Dashboard' },
             { path: '/travel-agency/booking-history', icon: FiCalendar, label: 'Booking History' },
             { path: '/travel-agency/payment-history', icon: FiDollarSign, label: 'Payment History' },
+            { path: '/travel-agency/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
             { path: '/travel-agency/vehicles', icon: FiTruck, label: 'Vehicles' },
             { path: '/travel-agency/promotions', icon: FiTag, label: 'Promotions' },
             { 
@@ -44,6 +47,7 @@ const SidebarTravelAgency = () => {
               label: 'Chat',
               badge: 3 
             },
+            { path: '/travel-agency/reviews', icon: FiStar, label: 'Reviews & Ratings' },
             { path: '/travel-agency/settings', icon: FiSettings, label: 'Settings' },
           ].map((item) => (
             <li key={item.path} className="relative">
