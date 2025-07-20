@@ -15,6 +15,7 @@ const RoomService = () => {
       originalPrice: 15000,
       discount: 10,
       finalPrice: 13500,
+      maxNoOfPeople: 5,
       beds: "1 King bed",
       bathrooms: 2,
       amenities: ["King bed", "Ocean view", "Minibar", "Air conditioning", "Free WiFi"],
@@ -27,6 +28,7 @@ const RoomService = () => {
       originalPrice: 25000,
       discount: 8,
       finalPrice: 23000,
+      maxNoOfPeople: 5,
       beds: "1 King bed",
       bathrooms: 3,
       amenities: ["King bed", "Separate living area", "Jacuzzi", "Air conditioning", "Free WiFi"],
@@ -39,6 +41,7 @@ const RoomService = () => {
       originalPrice: 8500,
       discount: 0,
       finalPrice: 8500,
+      maxNoOfPeople: 5,
       beds: "1 Queen bed",
       bathrooms: 1,
       amenities: ["Queen bed", "Air conditioning", "Free WiFi"],
@@ -50,6 +53,7 @@ const RoomService = () => {
     name: '',
     originalPrice: '',
     discount: '0',
+    maxNoOfPeople: '1',
     bedType: 'Single',
     numberOfBeds: '1',
     bathrooms: '1',
@@ -273,10 +277,10 @@ const RoomService = () => {
                       <>
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-gray-800 text-lg">{formatPrice(room.finalPrice)}/night</span>
-                          <span className="text-sm text-gray-500 line-through">{formatPrice(room.originalPrice)}</span>
+                          {/* <span className="text-sm text-gray-500 line-through">{formatPrice(room.originalPrice)}</span> */}
                         </div>
                         <div className="text-xs text-green-600 font-medium">
-                          You save Rs.{(room.originalPrice - room.finalPrice).toLocaleString('en-IN')}
+                          {/* You save Rs.{(room.originalPrice - room.finalPrice).toLocaleString('en-IN')} */}
                         </div>
                       </>
                     ) : (

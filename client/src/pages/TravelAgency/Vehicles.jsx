@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/SidebarTravelAgency';
+import Drivers from './Drivers'
 import { FaCar, FaBus, FaShuttleVan, FaMotorcycle, FaGasPump, FaSnowflake, FaUsers, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 
 const Vehicles = () => {
@@ -250,7 +251,7 @@ const Vehicles = () => {
   };
 
   const formatPrice = (price) => {
-    return `Rs.${price.toLocaleString('en-IN')}`;
+    return `LKR ${price.toLocaleString('en-IN')}`;
   };
 
   const getVehicleIcon = (type) => {
@@ -378,11 +379,11 @@ const Vehicles = () => {
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-600">With AC:</span>
-                    <span className="font-medium text-blue-600">{formatPrice(vehicle.pricePerKmWithAC)} per km</span>
+                    <span className="font-medium text-blue-600">{formatPrice(vehicle.pricePerKmWithAC)}/km</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-600">Without AC:</span>
-                    <span className="font-medium text-gray-600">{formatPrice(vehicle.pricePerKmWithoutAC)} per km</span>
+                    <span className="font-medium text-gray-600">{formatPrice(vehicle.pricePerKmWithoutAC)}/km</span>
                   </div>
                 </div>
 
@@ -1035,7 +1036,10 @@ const Vehicles = () => {
             </div>
           </div>
         )}
+
+       
       </main>
+      
     </div>
   );
 };

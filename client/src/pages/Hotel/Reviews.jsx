@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/SidebarHotel';
+import { FiStar, FiCalendar, FiUser, FiInfo, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 const Reviews = () => {
   // Sample data
@@ -68,169 +69,183 @@ const Reviews = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       
-      <div className="flex-1 p-6 bg-gray-100 overflow-auto">
-        <h1 className="text-2xl font-semibold mb-4">Guest Reviews & Ratings</h1>
-        
-        {/* Rating display */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <main className="flex-1 p-6 lg:p-8">
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-800">Guest Reviews & Ratings</h1>
+          <p className="text-gray-600 mt-2">
+            View and manage guest feedback for your hotel
+          </p>
+        </header>
+
+        {/* Rating Summary */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center">
-            <div className="text-4xl font-bold mr-4">{averageRating.toFixed(1)}</div>
+            <div className="text-4xl font-bold text-gray-800 mr-4">{averageRating.toFixed(1)}</div>
             <div>
-              <div className="flex items-center">
+              <div className="flex items-center mb-1">
                 {[...Array(5)].map((_, i) => (
-                  <svg
+                  <FiStar
                     key={i}
-                    className={`w-6 h-6 ${i < Math.floor(averageRating) ? 'text-yellow-400' : 'text-gray-300'}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
+                    className={`w-6 h-6 ${i < Math.floor(averageRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                  />
                 ))}
               </div>
-              <div className="text-gray-600 mt-1">Based on {reviews.length} reviews</div>
+              <div className="text-sm text-gray-500">Based on {reviews.length} reviews</div>
             </div>
           </div>
         </div>
-        
-        {/* Sorting controls */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <div className="flex space-x-4">
+
+        {/* Sorting Controls */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex space-x-3">
             <button 
               onClick={() => toggleSort('date')}
-              className={`px-4 py-2 rounded ${sortBy === 'date' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${sortBy === 'date' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
-              Sort by Date {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+              <FiCalendar className="mr-2" />
+              Date
+              {sortBy === 'date' && (
+                sortOrder === 'asc' ? <FiChevronUp className="ml-1" /> : <FiChevronDown className="ml-1" />
+              )}
             </button>
             <button 
               onClick={() => toggleSort('rating')}
-              className={`px-4 py-2 rounded ${sortBy === 'rating' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${sortBy === 'rating' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
-              Sort by Rating {sortBy === 'rating' && (sortOrder === 'asc' ? '↑' : '↓')}
+              <FiStar className="mr-2" />
+              Rating
+              {sortBy === 'rating' && (
+                sortOrder === 'asc' ? <FiChevronUp className="ml-1" /> : <FiChevronDown className="ml-1" />
+              )}
             </button>
           </div>
         </div>
-        
-        {/* Reviews table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-800 text-white">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Booking ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Review</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Rating</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {sortedReviews.map((review) => (
-                <tr key={review.id} className="hover:bg-gray-50" style={{ marginBottom: '1.5cm' }}>
-                  <td className="px-6 py-4 whitespace-nowrap">{review.bookingId}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{review.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{review.date}</td>
-                  <td className="px-6 py-4">
-                    {review.review.length > 20 ? `${review.review.substring(0, 20)}...` : review.review}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => openModal(review)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      See Details
-                    </button>
-                  </td>
+
+        {/* Reviews Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-800 text-white">
+                <tr>
+                  <th className="px-6 py-4 text-left font-medium">Booking ID</th>
+                  <th className="px-6 py-4 text-left font-medium">Guest</th>
+                  <th className="px-6 py-4 text-left font-medium">Date</th>
+                  <th className="px-6 py-4 text-left font-medium">Review</th>
+                  <th className="px-6 py-4 text-left font-medium">Rating</th>
+                  <th className="px-6 py-4 text-right font-medium">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sortedReviews.length > 0 ? (
+                  sortedReviews.map((review) => (
+                    <tr key={review.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 font-mono text-sm text-blue-600">{review.bookingId}</td>
+                      <td className="px-6 py-4 font-medium">{review.name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{review.date}</td>
+                      <td className="px-6 py-4">
+                        <p className="text-gray-600 line-clamp-2">{review.review}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <FiStar
+                              key={i}
+                              className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                            />
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => openModal(review)}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          <FiInfo className="inline-block mr-1" /> Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                      No reviews found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-        
-        {/* Modal */}
+
+        {/* Review Details Modal */}
         {selectedReview && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="p-6">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    Review Details
-                  </h3>
-                  <button
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
+                  <h3 className="text-xl font-bold text-gray-800">Review Details</h3>
+                  <button 
                     onClick={closeModal}
-                    className="text-gray-400 hover:text-gray-500"
+                    className="text-gray-400 hover:text-gray-600 text-xl font-semibold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
                   >
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    ✕
                   </button>
                 </div>
-                <div className="mt-4">
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Booking ID</p>
-                      <p className="mt-1 text-sm text-gray-900">{selectedReview.bookingId}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Guest Name</p>
-                      <p className="mt-1 text-sm text-gray-900">{selectedReview.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Date</p>
-                      <p className="mt-1 text-sm text-gray-900">{selectedReview.date}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Rating</p>
-                      <div className="flex items-center mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <svg
-                            key={i}
-                            className={`w-5 h-5 ${i < selectedReview.rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
+
+                {/* Booking ID */}
+                <div className="mb-4 p-3 bg-blue-100 rounded-lg">
+                  <div className="font-mono text-blue-600 font-semibold">{selectedReview.bookingId}</div>
+                </div>
+
+                {/* Guest Details */}
+                <div className="space-y-4 mb-6">
+                  <h4 className="font-semibold text-gray-800 text-lg border-b border-gray-100 pb-2">Guest Information</h4>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <FiUser className="text-blue-600 w-5 h-5 flex-shrink-0" />
+                      <div>
+                        <div className="font-semibold text-gray-800">{selectedReview.name}</div>
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Review</p>
-                    <p className="mt-1 text-sm text-gray-900">{selectedReview.review}</p>
+                    
+                    <div className="flex items-center gap-3">
+                      <FiCalendar className="text-blue-600 w-5 h-5 flex-shrink-0" />
+                      <div className="text-gray-700">{selectedReview.date}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Close
-                </button>
+
+                {/* Review Content */}
+                <div className="space-y-4 mb-6">
+                  <h4 className="font-semibold text-gray-800 text-lg border-b border-gray-100 pb-2">Review</h4>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p className="text-gray-700">{selectedReview.review}</p>
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-800 text-lg border-b border-gray-100 pb-2">Rating</h4>
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <FiStar
+                        key={i}
+                        className={`w-6 h-6 ${i < selectedReview.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                      />
+                    ))}
+                    <span className="ml-2 text-gray-700 font-medium">{selectedReview.rating}/5</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

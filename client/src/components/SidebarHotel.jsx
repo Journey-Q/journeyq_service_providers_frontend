@@ -20,8 +20,8 @@ const SidebarHotel = () => {
   return (
     <div className="w-64 min-h-screen bg-white border-r border-gray-200">
       {/* Hotel Branding Header */}
-      <div className="p-6">
-        <div className="flex items-center gap-3">
+      <div className="p-3">
+        <div className="flex items-center gap-2">
           <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center border border-blue-200">
             <FiUser className="text-[#2953A6] text-xl" />
           </div>

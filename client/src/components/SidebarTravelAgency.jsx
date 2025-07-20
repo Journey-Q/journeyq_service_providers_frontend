@@ -10,7 +10,8 @@ import {
   FiSettings,
   FiLogOut,
   FiUser,
-  FiStar
+  FiStar,
+  FiUsers
 } from 'react-icons/fi';
 import { AiOutlineBank } from 'react-icons/ai';
 
@@ -40,6 +41,7 @@ const SidebarTravelAgency = () => {
             { path: '/travel-agency/payment-history', icon: FiDollarSign, label: 'Payment History' },
             { path: '/travel-agency/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
             { path: '/travel-agency/vehicles', icon: FiTruck, label: 'Vehicles' },
+            { path: '/travel-agency/drivers', icon: FiUsers, label: 'Drivers' },
             { path: '/travel-agency/promotions', icon: FiTag, label: 'Promotions' },
             { 
               path: '/travel-agency/chat', 

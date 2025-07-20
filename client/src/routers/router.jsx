@@ -49,6 +49,7 @@ import TravelAgencyVehicles from '../pages/TravelAgency/Vehicles'
 import TravelAgencyPromotions from '../pages/TravelAgency/Promotions'
 import TravelAgencyReview from '../pages/TravelAgency/Reviews'
 import TravelAgencyBankDetails from '../pages/TravelAgency/Bankdetail'
+import TravelAgencyDrivers from '../pages/TravelAgency/Drivers'
 
 const router = createBrowserRouter([
   {
@@ -265,6 +266,11 @@ const router = createBrowserRouter([
           {
             path: 'reviews',
             element: <TravelAgencyReview/>
+          },
+
+          {
+            path: 'drivers',
+            element: <TravelAgencyDrivers/>
           },
 
           {

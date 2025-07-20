@@ -239,7 +239,6 @@ const PaymentHistory = () => {
                       </td>
                       <td className="px-6 py-4 font-medium">
                         <div className="flex items-center gap-2">
-                          <FiDollarSign className="text-green-600" />
                           <span className="text-green-600">{formatAmount(payment.amount)}</span>
                         </div>
                       </td>

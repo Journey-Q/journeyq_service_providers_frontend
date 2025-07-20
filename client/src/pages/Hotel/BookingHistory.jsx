@@ -21,7 +21,8 @@ const BookingHistory = () => {
       amount: 135000,
       status: 'confirmed',
       bookingDate: 'June 10, 2025',
-      specialRequests: 'Late check-in, Twin beds'
+      specialRequests: 'Late check-in, Twin beds',
+      foodPreferences: 'Half Board'
     },
     {
       id: 'BK-2025-0612-002',
@@ -39,7 +40,8 @@ const BookingHistory = () => {
       amount: 90000,
       status: 'completed',
       bookingDate: 'May 28, 2025',
-      specialRequests: 'Non-smoking room'
+      specialRequests: 'Non-smoking room',
+      foodPreferences: 'Full Board'
     },
     {
       id: 'BK-2025-0528-003',
@@ -57,7 +59,8 @@ const BookingHistory = () => {
       amount: 225000,
       status: 'completed',
       bookingDate: 'May 15, 2025',
-      specialRequests: 'Airport transfer, Extra bed'
+      specialRequests: 'Airport transfer, Extra bed',
+      foodPreferences: 'Bed & Breakfast'
     },
     {
       id: 'BK-2025-0601-004',
@@ -76,7 +79,8 @@ const BookingHistory = () => {
       status: 'cancelled',
       bookingDate: 'May 20, 2025',
       cancellationReason: 'Change of plans',
-      specialRequests: 'Ground floor room'
+      specialRequests: 'Ground floor room',
+      foodPreferences: 'Half Board'
     },
     {
       id: 'BK-2025-0520-005',
@@ -94,7 +98,8 @@ const BookingHistory = () => {
       amount: 190000,
       status: 'completed',
       bookingDate: 'April 30, 2025',
-      specialRequests: 'High chair, Extra towels'
+      specialRequests: 'High chair, Extra towels',
+      foodPreferences: 'Full Board'
     }
   ];
 
@@ -426,6 +431,16 @@ const BookingHistory = () => {
                         <h4 className="font-semibold text-gray-800 border-b border-gray-100 pb-2">Special Requests</h4>
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                           <p className="text-gray-700">{booking.specialRequests}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* food preferences */}
+                    {booking.foodPreferences && (
+                      <div className="space-y-2 mb-6">
+                        <h4 className="font-semibold text-gray-800 border-b border-gray-100 pb-2">Food Preferences</h4>
+                        <div className="bg-sky-50 border border-sky-200 rounded-lg p-3">
+                          <p className="text-gray-700">{booking.foodPreferences}</p>
                         </div>
                       </div>
                     )}
