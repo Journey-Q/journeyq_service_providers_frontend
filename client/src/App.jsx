@@ -8,15 +8,7 @@ function App() {
   
   // List of paths where Navbar should be hidden
   const noNavbarPaths = [
-    '/login',
-    '/register',
-    '/register/hotel',
-    '/register/tour-guide',
-    '/register/travel-agency',
-    '/hotel/create-profile',
-    '/tour-guide/create-profile',
-    '/travel-agency/create-profile',
-    '/'
+    
     // Add more paths here as needed
   ];
   
@@ -25,7 +17,7 @@ function App() {
 
   return (
     <div className="app-container">
-      {shouldShowNavbar && <Navbar />}
+      {shouldShowNavbar && !<Navbar />}
       <Outlet />
     </div>
   );

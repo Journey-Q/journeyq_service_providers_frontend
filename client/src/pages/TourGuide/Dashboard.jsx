@@ -7,6 +7,7 @@ import {
   ChevronRight,
   // Hiking
 } from 'lucide-react';
+import {Link} from 'react-router-dom'
 
 import Sidebar from '../../components/SidebarTourGuide'; 
 import { TourGuideOverview } from './TourGuideOverview';
@@ -45,7 +46,7 @@ const DashboardTourGuide = () => {
       <div className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-stone-800">Tour Guide Dashboard</h1>
+            {/* <h1 className="text-2xl font-bold text-stone-800">Tour Guide Dashboard</h1> */}
             <div className="flex space-x-2 bg-white p-1 rounded-lg shadow-inner border border-stone-200">
               {['weekly', 'monthly', 'yearly'].map((period) => (
                 <button
@@ -159,10 +160,16 @@ const DashboardTourGuide = () => {
                 <Calendar className="w-6 h-6 text-teal-600 mb-2" />
                 <span className="text-sm font-medium text-teal-800">Schedule Tour</span>
               </button>
+
+              
               <button className="p-4 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 transition-colors flex flex-col items-center">
+                <Link to='/tour-guide/booking-history'>
                 <Users className="w-6 h-6 text-amber-600 mb-2" />
-                <span className="text-sm font-medium text-amber-800">Manage Clients</span>
+                <span className="text-sm font-medium text-amber-800">Manage Bookings</span>
+                </Link>
               </button>
+              
+
               <button className="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-xl border border-indigo-200 transition-colors flex flex-col items-center">
                 <Map className="w-6 h-6 text-indigo-600 mb-2" />
                 <span className="text-sm font-medium text-indigo-800">Tour Routes</span>

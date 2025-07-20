@@ -29,7 +29,7 @@ import {
   Mouse
 } from "lucide-react";
 import img1 from '../assets/images/logo.png'
-import trip_post from '../assets/images/trip_post.jpg'
+// import trip_post from '../assets/images/trip_post.jpg'
 
 const Home = () => {
   const navigate = useNavigate(); // Add this hook
@@ -55,12 +55,12 @@ const Home = () => {
       caption: "AI-powered trip planning made simple",
       accent: "from-blue-500 to-purple-600"
     },
-    {
-      src: trip_post,
-      title: "Trip Posts",
-      caption: "Share your journey with the community",
-      accent: "from-green-500 to-teal-600"
-    },
+    // {
+    //   src: trip_post,
+    //   title: "Trip Posts",
+    //   caption: "Share your journey with the community",
+    //   accent: "from-green-500 to-teal-600"
+    // },
     {
       src: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
       title: "Marketplace",
