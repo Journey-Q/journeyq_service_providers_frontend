@@ -38,13 +38,13 @@ const Login = () => {
   })
 
   const [signupData, setSignupData] = useState({
-    username: "",
+    businessName: "", // Changed from username to businessName
     email: "",
     password: "",
     confirmPassword: "",
     phone: "",
     address: "",
-    businessName: "",
+    serviceType: "", // New field for service type
     businessRegNumber: "",
     termsAccepted: false,
     privacyAccepted: false,
@@ -128,13 +128,13 @@ const Login = () => {
     const newErrors = { ...errors }
 
     switch (name) {
-      case "username":
+      case "businessName": // Updated from username to businessName
         if (!value) {
-          newErrors.username = "Username is required"
+          newErrors.businessName = "Business Name is required"
         } else if (value.length < 3 || value.length > 50) {
-          newErrors.username = "Username must be 3-50 characters"
+          newErrors.businessName = "Business Name must be 3-50 characters"
         } else {
-          delete newErrors.username
+          delete newErrors.businessName
         }
         break
 
@@ -189,6 +189,14 @@ const Login = () => {
           delete newErrors.businessRegNumber
         }
         break
+
+      case "serviceType":
+        if (!value) {
+          newErrors.serviceType = "Service Type is required"
+        } else {
+          delete newErrors.serviceType
+        }
+        break
     }
 
     setErrors(newErrors)
@@ -212,6 +220,17 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+
+    // Validate all fields before submission
+    if (!isLogin) {
+      validateField("businessName", signupData.businessName)
+      validateField("email", signupData.email)
+      validateField("password", signupData.password)
+      validateField("confirmPassword", signupData.confirmPassword)
+      validateField("phone", signupData.phone)
+      validateField("businessRegNumber", signupData.businessRegNumber)
+      validateField("serviceType", signupData.serviceType)
+    }
 
     // Simulate API call
     setTimeout(() => {
@@ -354,7 +373,7 @@ const Login = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
         
-        .glass-input {
+        .glass-input, .glass-select {
           background: rgba(255, 255, 255, 0.95);
           border: 1px solid rgba(59, 130, 246, 0.2);
           box-shadow: 
@@ -363,7 +382,7 @@ const Login = () => {
           transition: all 0.3s ease-out;
         }
         
-        .glass-input:focus {
+        .glass-input:focus, .glass-select:focus {
           background: rgba(255, 255, 255, 1);
           border: 1px solid rgba(59, 130, 246, 0.5);
           box-shadow: 
@@ -522,10 +541,6 @@ const Login = () => {
 
             <div className="w-full sm:w-1/2 flex flex-col p-6 sm:p-8">
               <div className="flex-shrink-0 mb-6">
-                {/* <div className="flex items-center justify-center mb-4 scale-enter">
-                  <img src={logo || "/placeholder.svg"} alt="JourneyQ Logo" className="w-10 h-10 object-contain" />
-                  <h1 className="ml-3 text-2xl font-bold gradient-text">JourneyQ</h1>
-                </div> */}
                 <div className="text-center">
                   <h2 className="text-xl font-semibold text-white">
                     {isLogin ? "Welcome Back" : "Join JourneyQ"}
@@ -569,14 +584,14 @@ const Login = () => {
                         <div className="space-y-1 field-enter delay-100">
                           <label className="flex items-center text-sm font-medium text-white/90">
                             <User className="h-4 w-4 mr-2 text-blue-300" />
-                            Email or Username
+                            Email or Business Name
                           </label>
                           <input
                             type="text"
                             value={loginData.emailOrUsername}
                             onChange={(e) => handleLoginChange("emailOrUsername", e.target.value)}
                             className="w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover"
-                            placeholder="Email or Username"
+                            placeholder="Email or Business Name"
                           />
                         </div>
 
@@ -639,7 +654,6 @@ const Login = () => {
                           )}
                         </button>
 
-
                         <div className="text-center text-sm field-enter delay-500">
                           <p className="text-white/80">
                             Don't have an account?{" "}
@@ -656,22 +670,47 @@ const Login = () => {
                       <div className="space-y-4">
                         <div className="space-y-1 field-enter delay-100">
                           <label className="flex items-center text-sm font-medium text-white/90">
-                            <User className="h-4 w-4 mr-2 text-blue-300" />
-                            Username
+                            <Building className="h-4 w-4 mr-2 text-blue-300" />
+                            Business Name
                           </label>
                           <input
                             type="text"
-                            value={signupData.username}
-                            onChange={(e) => handleSignupChange("username", e.target.value)}
+                            value={signupData.businessName}
+                            onChange={(e) => handleSignupChange("businessName", e.target.value)}
                             className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                              errors.username ? "border-red-400 wiggle-error" : ""
+                              errors.businessName ? "border-red-400 wiggle-error" : ""
                             }`}
-                            placeholder="Choose a username"
+                            placeholder="Enter your business name"
                           />
-                          {errors.username && (
+                          {errors.businessName && (
                             <p className="text-xs text-red-300 flex items-center gap-1">
                               <AlertCircle className="h-3 w-3" />
-                              {errors.username}
+                              {errors.businessName}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-1 field-enter delay-150">
+                          <label className="flex items-center text-sm font-medium text-white/90">
+                            <User className="h-4 w-4 mr-2 text-blue-300" />
+                            Service Type
+                          </label>
+                          <select
+                            value={signupData.serviceType}
+                            onChange={(e) => handleSignupChange("serviceType", e.target.value)}
+                            className={`w-full px-4 py-2.5 glass-select rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
+                              errors.serviceType ? "border-red-400 wiggle-error" : ""
+                            }`}
+                          >
+                            <option value="" disabled>Select Service Type</option>
+                            <option value="HOTEL">Hotel</option>
+                            <option value="TOUR_GUIDE">Tour Guide</option>
+                            <option value="TRAVEL_AGENT">Travel Agent</option>
+                          </select>
+                          {errors.serviceType && (
+                            <p className="text-xs text-red-300 flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3" />
+                              {errors.serviceType}
                             </p>
                           )}
                         </div>
@@ -793,21 +832,7 @@ const Login = () => {
                           )}
                         </div>
 
-                        <div className="space-y-1 field-enter delay-500">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <Building className="h-4 w-4 mr-2 text-blue-300" />
-                            Business Name
-                          </label>
-                          <input
-                            type="text"
-                            value={signupData.businessName}
-                            onChange={(e) => handleSignupChange("businessName", e.target.value)}
-                            className="w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover"
-                            placeholder="Enter your business name"
-                          />
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-500">
+                        <div className="space-y-1 field-enter delay-600">
                           <label className="flex items-center text-sm font-medium text-white/90">
                             <FileText className="h-4 w-4 mr-2 text-blue-300" />
                             Business Registration Number
@@ -829,7 +854,7 @@ const Login = () => {
                           )}
                         </div>
 
-                        <div className="space-y-1 field-enter delay-500">
+                        <div className="space-y-1 field-enter delay-700">
                           <label className="flex items-center text-sm font-medium text-white/90">
                             <MapPin className="h-4 w-4 mr-2 text-blue-300" />
                             Business Address
@@ -844,12 +869,10 @@ const Login = () => {
                           <p className="text-xs text-white/60 text-right">{signupData.address.length}/500</p>
                         </div>
 
-                     
-
                         <button
                           type="submit"
-                          disabled={isLoading || (!signupData.termsAccepted || !signupData.privacyAccepted)}
-                          className="w-full glass-button text-white font-semibold py-3 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          disabled={isLoading || !signupData.termsAccepted || !signupData.privacyAccepted}
+                          className="w-full glass-button text-white font-semibold py-3 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 field-enter delay-900"
                         >
                           {isLoading ? (
                             <>
@@ -864,7 +887,7 @@ const Login = () => {
                           )}
                         </button>
 
-                        <div className="text-center text-sm field-enter delay-500">
+                        <div className="text-center text-sm field-enter delay-1000">
                           <p className="text-white/80">
                             Already have an account?{" "}
                             <button
