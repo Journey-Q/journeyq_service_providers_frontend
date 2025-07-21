@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronRight, ChevronLeft, Upload, MapPin, Building, FileText, Settings, Check, Star } from 'lucide-react';
 
 const HotelProfileCreator = () => {
@@ -22,7 +22,8 @@ const HotelProfileCreator = () => {
       phone: '',
       address: '',
       email: ''
-    }
+    },
+    placeDetails: null
   });
 
   const steps = [
@@ -33,6 +34,93 @@ const HotelProfileCreator = () => {
     { number: 5, title: 'Details', icon: Settings }
   ];
 
+  const mapContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (currentStep === 2) {
+      const loadGoogleMapsScript = () => {
+        if (window.google && window.google.maps) {
+          initializeAutocomplete();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCFbprhDc_fKXUHl-oYEVGXKD1HciiAsz0&libraries=places`;
+        script.async = true;
+        script.onload = initializeAutocomplete;
+        document.head.appendChild(script);
+      };
+
+      const initializeAutocomplete = () => {
+        const input = document.getElementById('location-search');
+        if (!input || !mapContainerRef.current) return;
+
+        const autocomplete = new window.google.maps.places.Autocomplete(input, {
+          types: ['establishment'],
+          fields: ['name', 'formatted_address', 'geometry', 'place_id']
+        });
+
+        const map = new window.google.maps.Map(mapContainerRef.current, {
+          center: { lat: 0, lng: 0 },
+          zoom: 2,
+          mapTypeControl: false
+        });
+
+        const marker = new window.google.maps.Marker({
+          map: map
+        });
+
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          
+          if (!place.geometry) {
+            console.log("No details available for input: '" + place.name + "'");
+            marker.setVisible(false);
+            return;
+          }
+
+          // Update form data with place details including lat/lng
+          setFormData(prev => ({
+            ...prev,
+            location: place.name || place.formatted_address,
+            placeDetails: {
+              displayName: place.name || place.formatted_address,
+              formattedAddress: place.formatted_address,
+              location: {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+              }
+            },
+            contactInfo: {
+              ...prev.contactInfo,
+              address: place.formatted_address || ''
+            }
+          }));
+
+          // Center the map on the selected place
+          if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+          } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(17);
+          }
+
+          marker.setPosition(place.geometry.location);
+          marker.setVisible(true);
+        });
+      };
+
+      loadGoogleMapsScript();
+
+      return () => {
+        // Cleanup if needed
+        if (mapContainerRef.current) {
+          mapContainerRef.current.innerHTML = '';
+        }
+      };
+    }
+  }, [currentStep]);
+
   const handleNext = () => {
     setIsTransitioning(true);
     setTimeout(() => {
@@ -41,6 +129,7 @@ const HotelProfileCreator = () => {
       } else {
         setIsCompleted(true);
         setTimeout(() => {
+          console.log('Form data to submit:', formData);
           window.location.href = '/hotel/dashboard';
         }, 2000);
       }
@@ -138,21 +227,39 @@ const HotelProfileCreator = () => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-2xl font-semibold text-gray-800 mb-2">Where is your hotel located?</h2>
-              <p className="text-gray-600">Help guests find you easily</p>
+              <p className="text-gray-600">Search for your hotel location</p>
             </div>
             <div className="max-w-md mx-auto space-y-4">
-              <input
-                type="text"
-                placeholder="Enter hotel location"
-                value={formData.location}
-                onChange={(e) => updateFormData('location', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B9ED9] focus:border-transparent outline-none backdrop-blur-sm bg-white/90"
-              />
-              <div className="bg-gray-100/80 backdrop-blur-sm rounded-lg p-6 text-center">
-                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600 text-sm">Google Maps integration would be implemented here</p>
-                <p className="text-xs text-gray-500 mt-1">API key required for live maps</p>
+              <div className="relative">
+                <input
+                  id="location-search"
+                  type="text"
+                  placeholder="Enter hotel location"
+                  value={formData.location}
+                  onChange={(e) => updateFormData('location', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B9ED9] focus:border-transparent outline-none text-lg backdrop-blur-sm bg-white/90"
+                  autoComplete="off"
+                />
               </div>
+              <div className="bg-gray-100/80 backdrop-blur-sm rounded-lg p-4 h-64">
+                <div 
+                  ref={mapContainerRef} 
+                  className="w-full h-full rounded-md"
+                  style={{ minHeight: '200px' }}
+                ></div>
+              </div>
+              {formData.placeDetails && (
+                <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                  <h4 className="font-medium text-blue-800">Selected Location:</h4>
+                  <p className="text-blue-700">{formData.placeDetails.displayName}</p>
+                  <p className="text-sm text-blue-600">{formData.placeDetails.formattedAddress}</p>
+                  {formData.placeDetails.location && (
+                    <p className="text-xs text-blue-500 mt-1">
+                      Coordinates: {formData.placeDetails.location.lat.toFixed(6)}, {formData.placeDetails.location.lng.toFixed(6)}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -330,7 +437,6 @@ const HotelProfileCreator = () => {
         <div className={`bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden w-full max-w-5xl transition-all duration-300 ${
           isTransitioning ? 'opacity-70 scale-98' : 'opacity-100 scale-100'
         }`}>
-
 
           {/* Content */}
           <div className="px-8 pt-8 pb-6" style={{ minHeight: '350px' }}>

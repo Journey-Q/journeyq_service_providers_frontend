@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/SidebarHotel';
 import { 
   Edit2, 
@@ -38,6 +38,10 @@ const Settings = () => {
     starRating: 4,
     numberOfRooms: 75,
     open247: true,
+    location: {
+      lat: 25.7617,
+      lng: -80.1918
+    },
     amenities: {
       wifi: true,
       parking: true,
@@ -61,6 +65,47 @@ const Settings = () => {
   const [showDeleteSection, setShowDeleteSection] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [profileImage] = useState('https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Load Google Maps API
+  useEffect(() => {
+    if (!window.google) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCFbprhDc_fKXUHl-oYEVGXKD1HciiAsz0&libraries=places`;
+      script.async = true;
+      script.onload = () => setMapLoaded(true);
+      document.head.appendChild(script);
+    } else {
+      setMapLoaded(true);
+    }
+  }, []);
+
+  // Initialize autocomplete when editing and map is loaded
+  useEffect(() => {
+    if (isEditingProfile && mapLoaded) {
+      const input = document.getElementById('location-search');
+      if (input) {
+        const autocomplete = new window.google.maps.places.Autocomplete(input, {
+          types: ['establishment'],
+          fields: ['name', 'formatted_address', 'geometry']
+        });
+
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place.geometry) {
+            setProfileData(prev => ({
+              ...prev,
+              address: place.formatted_address || prev.address,
+              location: {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+              }
+            }));
+          }
+        });
+      }
+    }
+  }, [isEditingProfile, mapLoaded]);
 
   const handleProfileChange = (field, value) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
@@ -192,15 +237,22 @@ const Settings = () => {
                     </div>
                   </div>
 
-                  {/* Address */}
+                  {/* Address with Google Places Autocomplete */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                     <input
+                      id="location-search"
                       type="text"
                       value={profileData.address}
                       onChange={(e) => handleProfileChange('address', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
+                      placeholder="Search for your hotel location"
                     />
+                    {profileData.location && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Coordinates: {profileData.location.lat.toFixed(6)}, {profileData.location.lng.toFixed(6)}
+                      </p>
+                    )}
                   </div>
 
                   {/* Open 24/7 */}
@@ -269,7 +321,7 @@ const Settings = () => {
                           className="w-4 h-4 text-[#0088cc] rounded focus:ring-[#0088cc]"
                         />
                         <label htmlFor="spa" className="text-sm text-gray-700 flex items-center">
-                          <coffee className="w-4 h-4 mr-1" /> Spa & Wellness
+                          <Coffee className="w-4 h-4 mr-1" /> Spa & Wellness
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -385,15 +437,17 @@ const Settings = () => {
                       <div className="mt-4">
                         <p className="text-sm text-gray-600 mb-2">Location</p>
                         <div className="h-48 bg-gray-200 rounded-lg overflow-hidden">
-                          <iframe
-                            title="Hotel Location"
-                            width="100%"
-                            height="100%"
-                            frameBorder="0"
-                            style={{ border: 0 }}
-                            src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(profileData.address)}`}
-                            allowFullScreen
-                          ></iframe>
+                          {profileData.location && (
+                            <iframe
+                              title="Hotel Location"
+                              width="100%"
+                              height="100%"
+                              frameBorder="0"
+                              style={{ border: 0 }}
+                              src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyCFbprhDc_fKXUHl-oYEVGXKD1HciiAsz0&q=${profileData.location.lat},${profileData.location.lng}&zoom=15`}
+                              allowFullScreen
+                            ></iframe>
+                          )}
                         </div>
                       </div>
                       
@@ -416,9 +470,9 @@ const Settings = () => {
                               <Utensils className="w-4 h-4 mr-1" /> Restaurant
                             </span>
                           )}
-                          {profileData.amenities.coffee && (
+                          {profileData.amenities.spa && (
                             <span className="inline-flex items-center px-3 py-1 rounded-full bg-pink-50 text-pink-700 text-sm">
-                              <coffee className="w-4 h-4 mr-1" /> Spa & Wellness
+                              <Coffee className="w-4 h-4 mr-1" /> Spa & Wellness
                             </span>
                           )}
                           {profileData.amenities.pool && (
