@@ -12,10 +12,9 @@ const RoomService = () => {
       id: 1,
       name: "Deluxe Ocean View",
       image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aG90ZWwlMjByb29tfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
-      originalPrice: 15000,
-      discount: 10,
-      finalPrice: 13500,
-      maxNoOfPeople: 5,
+      price: 15000,
+      maxOccupancy: 3,
+      area: 45,
       beds: "1 King bed",
       bathrooms: 2,
       amenities: ["King bed", "Ocean view", "Minibar", "Air conditioning", "Free WiFi"],
@@ -25,10 +24,9 @@ const RoomService = () => {
       id: 2,
       name: "Executive Suite",
       image: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8aG90ZWwlMjByb29tfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
-      originalPrice: 25000,
-      discount: 8,
-      finalPrice: 23000,
-      maxNoOfPeople: 5,
+      price: 25000,
+      maxOccupancy: 4,
+      area: 65,
       beds: "1 King bed",
       bathrooms: 3,
       amenities: ["King bed", "Separate living area", "Jacuzzi", "Air conditioning", "Free WiFi"],
@@ -38,10 +36,9 @@ const RoomService = () => {
       id: 3,
       name: "Standard Room",
       image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aG90ZWwlMjByb29tfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
-      originalPrice: 8500,
-      discount: 0,
-      finalPrice: 8500,
-      maxNoOfPeople: 5,
+      price: 8500,
+      maxOccupancy: 2,
+      area: 30,
       beds: "1 Queen bed",
       bathrooms: 1,
       amenities: ["Queen bed", "Air conditioning", "Free WiFi"],
@@ -51,9 +48,9 @@ const RoomService = () => {
 
   const [formData, setFormData] = useState({
     name: '',
-    originalPrice: '',
-    discount: '0',
-    maxNoOfPeople: '1',
+    price: '',
+    maxOccupancy: '1',
+    area: '',
     bedType: 'Single',
     numberOfBeds: '1',
     bathrooms: '1',
@@ -75,19 +72,6 @@ const RoomService = () => {
     available: "Available",
     occupied: "Occupied",
     maintenance: "Maintenance"
-  };
-
-  // Calculate final price based on percentage discount
-  const calculateFinalPrice = (originalPrice, discount) => {
-    const price = parseFloat(originalPrice) || 0;
-    const discountValue = parseFloat(discount) || 0;
-    
-    return Math.round(price - (price * discountValue / 100));
-  };
-
-  // Get current final price for form
-  const getCurrentFinalPrice = () => {
-    return calculateFinalPrice(formData.originalPrice, formData.discount);
   };
 
   const handleInputChange = (e) => {
@@ -115,16 +99,13 @@ const RoomService = () => {
     
     const bedDescription = `${formData.numberOfBeds} ${formData.bedType} bed${formData.numberOfBeds > 1 ? 's' : ''}`;
     const amenitiesArray = formData.amenities.split(',').map(amenity => amenity.trim()).filter(amenity => amenity);
-    const originalPrice = parseInt(formData.originalPrice);
-    const discount = parseFloat(formData.discount);
-    const finalPrice = calculateFinalPrice(originalPrice, discount);
     
     const newRoom = {
       id: rooms.length + 1,
       name: formData.name,
-      originalPrice: originalPrice,
-      discount: discount,
-      finalPrice: finalPrice,
+      price: parseInt(formData.price),
+      maxOccupancy: parseInt(formData.maxOccupancy),
+      area: parseInt(formData.area),
       beds: bedDescription,
       bathrooms: parseInt(formData.bathrooms),
       amenities: amenitiesArray,
@@ -140,8 +121,9 @@ const RoomService = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      originalPrice: '',
-      discount: '0',
+      price: '',
+      maxOccupancy: '1',
+      area: '',
       bedType: 'Single',
       numberOfBeds: '1',
       bathrooms: '1',
@@ -162,8 +144,9 @@ const RoomService = () => {
     
     setFormData({
       name: room.name,
-      originalPrice: room.originalPrice.toString(),
-      discount: room.discount.toString(),
+      price: room.price.toString(),
+      maxOccupancy: room.maxOccupancy.toString(),
+      area: room.area.toString(),
       bedType: bedType,
       numberOfBeds: numberOfBeds,
       bathrooms: room.bathrooms.toString(),
@@ -181,16 +164,13 @@ const RoomService = () => {
     
     const bedDescription = `${formData.numberOfBeds} ${formData.bedType} bed${formData.numberOfBeds > 1 ? 's' : ''}`;
     const amenitiesArray = formData.amenities.split(',').map(amenity => amenity.trim()).filter(amenity => amenity);
-    const originalPrice = parseInt(formData.originalPrice);
-    const discount = parseFloat(formData.discount);
-    const finalPrice = calculateFinalPrice(originalPrice, discount);
     
     const updatedRoom = {
       ...currentRoom,
       name: formData.name,
-      originalPrice: originalPrice,
-      discount: discount,
-      finalPrice: finalPrice,
+      price: parseInt(formData.price),
+      maxOccupancy: parseInt(formData.maxOccupancy),
+      area: parseInt(formData.area),
       beds: bedDescription,
       bathrooms: parseInt(formData.bathrooms),
       amenities: amenitiesArray,
@@ -217,11 +197,6 @@ const RoomService = () => {
 
   const formatPrice = (price) => {
     return `Rs.${price.toLocaleString('en-IN')}`;
-  };
-
-  const formatDiscount = (discount) => {
-    if (discount === 0) return null;
-    return `${discount}% OFF`;
   };
 
   return (
@@ -253,12 +228,6 @@ const RoomService = () => {
                   alt={room.name}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 />
-                {/* Discount Badge */}
-                {room.discount > 0 && (
-                  <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
-                    {formatDiscount(room.discount)}
-                  </div>
-                )}
               </div>
               
               {/* Room Details */}
@@ -273,24 +242,24 @@ const RoomService = () => {
                 {/* Price */}
                 <div className="flex items-center text-gray-600 mb-3">
                   <div className="flex flex-col">
-                    {room.discount > 0 ? (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-800 text-lg">{formatPrice(room.finalPrice)}/night</span>
-                          {/* <span className="text-sm text-gray-500 line-through">{formatPrice(room.originalPrice)}</span> */}
-                        </div>
-                        <div className="text-xs text-green-600 font-medium">
-                          {/* You save Rs.{(room.originalPrice - room.finalPrice).toLocaleString('en-IN')} */}
-                        </div>
-                      </>
-                    ) : (
-                      <span className="font-medium text-gray-800 text-lg">{formatPrice(room.finalPrice)}/night</span>
-                    )}
+                    <span className="font-medium text-gray-800 text-lg">{formatPrice(room.price)}/night</span>
                   </div>
                 </div>
 
                 {/* Room Details */}
                 <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Max {room.maxOccupancy} person{room.maxOccupancy > 1 ? 's' : ''}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    {room.area} sqm
+                  </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7z" />
@@ -377,67 +346,54 @@ const RoomService = () => {
 
                   {/* Pricing Section */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Pricing & Discount</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Room Details</h3>
                     
-                    {/* Original Price */}
+                    {/* Price */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Original Price per Night (LKR)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Price per Night (LKR)</label>
                       <input
                         type="number"
-                        name="originalPrice"
-                        value={formData.originalPrice}
+                        name="price"
+                        value={formData.price}
                         onChange={handleInputChange}
                         required
                         min="1"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent"
-                        placeholder="Enter original price in INR"
+                        placeholder="Enter price in LKR"
                       />
                     </div>
 
-                    {/* Discount Configuration */}
+                    {/* Maximum Occupancy */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Discount Percentage (%)
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Occupancy</label>
+                      <select
+                        name="maxOccupancy"
+                        value={formData.maxOccupancy}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent"
+                      >
+                        <option value="1">1 person</option>
+                        <option value="2">2 people</option>
+                        <option value="3">3 people</option>
+                        <option value="4">4 people</option>
+                        <option value="5">5 people</option>
+                      </select>
+                    </div>
+
+                    {/* Room Area */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Room Area (sqm)</label>
                       <input
                         type="number"
-                        name="discount"
-                        value={formData.discount}
+                        name="area"
+                        value={formData.area}
                         onChange={handleInputChange}
-                        min="0"
-                        max="100"
+                        required
+                        min="1"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent"
-                        placeholder='Enter percentage (0-100)'
+                        placeholder="Enter room area in square meters"
                       />
                     </div>
-
-                    {/* Price Preview */}
-                    {formData.originalPrice && (
-                      <div className="bg-white p-3 rounded border">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Final Price:</span>
-                          <div className="text-right">
-                            {formData.discount > 0 ? (
-                              <>
-                                <div className="font-semibold text-lg text-green-600">
-                                  Rs{getCurrentFinalPrice().toLocaleString('en-IN')}/night
-                                </div>
-                                <div className="text-sm text-gray-500 line-through">
-                                  Rs{parseInt(formData.originalPrice).toLocaleString('en-IN')}
-                                </div>
-                                <div className="text-xs text-green-600">
-                                  Save Rs{(parseInt(formData.originalPrice) - getCurrentFinalPrice()).toLocaleString('en-IN')}
-                                </div>
-                              </>
-                            ) : (
-                              <div className="font-semibold text-lg">
-                                Rs{parseInt(formData.originalPrice).toLocaleString('en-IN')}/night
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Bed Configuration */}
@@ -594,67 +550,54 @@ const RoomService = () => {
 
                   {/* Pricing Section */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Pricing & Discount</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Room Details</h3>
                     
-                    {/* Original Price */}
+                    {/* Price */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Original Price per Night (LKR)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Price per Night (LKR)</label>
                       <input
                         type="number"
-                        name="originalPrice"
-                        value={formData.originalPrice}
+                        name="price"
+                        value={formData.price}
                         onChange={handleInputChange}
                         required
                         min="1"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent"
-                        placeholder="Enter original price in INR"
+                        placeholder="Enter price in LKR"
                       />
                     </div>
 
-                    {/* Discount Configuration */}
+                    {/* Maximum Occupancy */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Discount Percentage (%)
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Occupancy</label>
+                      <select
+                        name="maxOccupancy"
+                        value={formData.maxOccupancy}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent"
+                      >
+                        <option value="1">1 person</option>
+                        <option value="2">2 people</option>
+                        <option value="3">3 people</option>
+                        <option value="4">4 people</option>
+                        <option value="5">5 people</option>
+                      </select>
+                    </div>
+
+                    {/* Room Area */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Room Area (sqm)</label>
                       <input
                         type="number"
-                        name="discount"
-                        value={formData.discount}
+                        name="area"
+                        value={formData.area}
                         onChange={handleInputChange}
-                        min="0"
-                        max="100"
+                        required
+                        min="1"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent"
-                        placeholder="Enter percentage (0-100)"
+                        placeholder="Enter room area in square meters"
                       />
                     </div>
-
-                    {/* Price Preview */}
-                    {formData.originalPrice && (
-                      <div className="bg-white p-3 rounded border">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Final Price:</span>
-                          <div className="text-right">
-                            {formData.discount > 0 ? (
-                              <>
-                                <div className="font-semibold text-lg text-green-600">
-                                  Rs{getCurrentFinalPrice().toLocaleString('en-IN')}/night
-                                </div>
-                                <div className="text-sm text-gray-500 line-through">
-                                  Rs{parseInt(formData.originalPrice).toLocaleString('en-IN')}
-                                </div>
-                                <div className="text-xs text-green-600">
-                                  Save Rs{(parseInt(formData.originalPrice) - getCurrentFinalPrice()).toLocaleString('en-IN')}
-                                </div>
-                              </>
-                            ) : (
-                              <div className="font-semibold text-lg">
-                                Rs{parseInt(formData.originalPrice).toLocaleString('en-IN')}/night
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Bed Configuration */}
