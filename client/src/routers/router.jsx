@@ -24,6 +24,7 @@ import HotelChat from '../pages/Hotel/Chat';
 import HotelEditRoomService from '../pages/Hotel/EditRoomService'
 import HotelBankDetails from "../pages/Hotel/Bankdetail";
 import HotelReview from "../pages/Hotel/Reviews";
+import HotelPendingApproval from "../pages/Hotel/PendingApproval"
 
 //tour guide
 import TourGuideDashboard from '../pages/TourGuide/Dashboard';
@@ -37,6 +38,7 @@ import TourGuidePromotions from '../pages/TourGuide/Promotions'
 import TourGuideReview from "../pages/TourGuide/Reviews"
 import TourGuideBankDetails from '../pages/TourGuide/Bankdetail'
 import TourGuideDisplayTours from '../pages/TourGuide/DisplayTour'
+import TourGuidePendingApproval from '../pages/TourGuide/PendingApproval'
 
 //travel agency
 import TravelAgencyDashboard from '../pages/TravelAgency/Dashboard';
@@ -50,6 +52,7 @@ import TravelAgencyPromotions from '../pages/TravelAgency/Promotions'
 import TravelAgencyReview from '../pages/TravelAgency/Reviews'
 import TravelAgencyBankDetails from '../pages/TravelAgency/Bankdetail'
 import TravelAgencyDrivers from '../pages/TravelAgency/Drivers'
+import TravelAgencyPendingApproval from '../pages/TravelAgency/PendingApproval'
 
 const router = createBrowserRouter([
   {
@@ -145,6 +148,11 @@ const router = createBrowserRouter([
             element: <HotelReview/>
           },
 
+          {
+            path: 'pending-approval',
+            element: <HotelPendingApproval/>
+          },
+
           //inside pages, edits, creates
           {
             path:'edit-room-service',
@@ -211,6 +219,11 @@ const router = createBrowserRouter([
             element: <TourGuideReview/>
           },
 
+          {
+            path: 'pending-approval',
+            element: <TourGuidePendingApproval/>
+          },
+
             {
               path:'create-profile',
               element: <TourGuideCreateProfile/>
@@ -271,6 +284,11 @@ const router = createBrowserRouter([
           {
             path: 'drivers',
             element: <TravelAgencyDrivers/>
+          },
+
+          {
+            path: 'pending-approval',
+            element: <TravelAgencyPendingApproval/>
           },
 
           {
