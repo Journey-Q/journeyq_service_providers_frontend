@@ -29,7 +29,7 @@ import {
   Mouse
 } from "lucide-react";
 import img1 from '../assets/images/logo.png'
-// import trip_post from '../assets/images/trip_post.jpg'
+import trip_post from '../assets/images/trip_post.jpg'
 
 const Home = () => {
   const navigate = useNavigate(); // Add this hook
@@ -55,12 +55,12 @@ const Home = () => {
       caption: "AI-powered trip planning made simple",
       accent: "from-blue-500 to-purple-600"
     },
-    // {
-    //   src: trip_post,
-    //   title: "Trip Posts",
-    //   caption: "Share your journey with the community",
-    //   accent: "from-green-500 to-teal-600"
-    // },
+    {
+      src: trip_post,
+      title: "Trip Posts",
+      caption: "Share your journey with the community",
+      accent: "from-green-500 to-teal-600"
+    },
     {
       src: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
       title: "Marketplace",
@@ -102,7 +102,7 @@ const Home = () => {
     {
       icon: MapPin,
       title: "Discover Hidden Gems",
-      description: "Find secret spots and local favorites recommended by experienced travelers from around the globe.",
+      description: "Find secret spots and local favorites recommended by experienced travelers from around the srilanka.",
       color: "from-purple-500 to-pink-600",
       bgColor: "bg-purple-50"
     },
@@ -411,156 +411,96 @@ const Home = () => {
       </section>
 
       {/* App Preview Section */}
-      <section className="py-24 bg-gradient-to-br from-[#0088cc]/5 to-blue-50 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-40 h-40 bg-[#0088cc]/10 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute bottom-20 right-20 w-60 h-60 bg-purple-400/10 rounded-full blur-3xl animate-float delay-1000"></div>
-        </div>
-        
-        <div className="container mx-auto px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-20 animate-fade-in-up">
-            <div className="inline-block px-6 py-3 bg-[#0088cc]/10 rounded-full text-[#0088cc] font-semibold mb-6">
-              📱 App Preview
-            </div>
-            <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-8">
-              Experience <span className="gradient-text">JourneyQ</span> in Action
-            </h2>
-            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Get a sneak peek of our beautifully designed mobile app that makes travel planning, 
-              sharing, and connecting feel effortless and enjoyable.
-            </p>
-          </div>
+     <section className="py-24 bg-gradient-to-br from-[#0088cc]/5 to-blue-50 relative overflow-hidden">
+  <div className="absolute inset-0">
+    <div className="absolute top-20 left-20 w-40 h-40 bg-[#0088cc]/10 rounded-full blur-3xl animate-float"></div>
+    <div className="absolute bottom-20 right-20 w-60 h-60 bg-purple-400/10 rounded-full blur-3xl animate-float delay-1000"></div>
+  </div>
+  
+  <div className="container mx-auto px-6 lg:px-8 relative z-10">
+    <div className="text-center mb-20 animate-fade-in-up">
+      <div className="inline-block px-6 py-3 bg-[#0088cc]/10 rounded-full text-[#0088cc] font-semibold mb-6">
+        📱 App Preview
+      </div>
+      <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-8">
+        Experience <span className="gradient-text">JourneyQ</span> in Action
+      </h2>
+      <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+        Get a sneak peek of our beautifully designed mobile app that makes travel planning, 
+        sharing, and connecting feel effortless and enjoyable.
+      </p>
+    </div>
 
-          <div className="relative max-w-lg mx-auto">
-            <div className="relative">
-              <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full bg-white shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 border border-gray-100"
-              >
-                <ChevronLeft className="w-6 h-6 text-[#0088cc]" />
-              </button>
+    <div className="relative max-w-lg mx-auto">
+      <div className="relative">
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full bg-white shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 border border-gray-100"
+        >
+          <ChevronLeft className="w-6 h-6 text-[#0088cc]" />
+        </button>
 
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full bg-white shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 border border-gray-100"
-              >
-                <ChevronRight className="w-6 h-6 text-[#0088cc]" />
-              </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-4 rounded-full bg-white shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 border border-gray-100"
+        >
+          <ChevronRight className="w-6 h-6 text-[#0088cc]" />
+        </button>
 
-              {/* Mobile Phone Frame */}
-              <div className="relative w-80 h-[640px] mx-auto animate-fade-in-up">
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[3rem] shadow-2xl transform hover:scale-105 transition-transform duration-500 animate-glow">
-                  
-                  {/* Phone Screen */}
-                  <div className="absolute inset-3 bg-black rounded-[2.5rem] overflow-hidden">
-                    
-                    {/* Status Bar */}
-                    <div className="absolute top-0 left-0 right-0 h-12 bg-black z-20 flex items-center justify-between px-8">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-1 h-1 bg-white rounded-full"></div>
-                        <div className="w-1 h-1 bg-white rounded-full"></div>
-                        <div className="w-1 h-1 bg-white rounded-full"></div>
-                      </div>
-                      <div className="text-white text-sm font-medium">9:41</div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-6 h-3 border border-white rounded-sm">
-                          <div className="w-3 h-full bg-white rounded-sm"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Dynamic Island */}
-                    <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-28 h-7 bg-black rounded-full z-30 shadow-lg"></div>
-                    
-                    {/* Screen Content */}
-                    <div className="absolute inset-0 pt-16 pb-10">
-                      <div className="w-full h-full relative overflow-hidden rounded-[2rem]">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${appScreenshots[currentScreenIndex].accent} opacity-20 transition-opacity duration-500`}></div>
-                        <img
-                          src={appScreenshots[currentScreenIndex].src}
-                          alt={appScreenshots[currentScreenIndex].title}
-                          className="w-full h-full object-cover transition-all duration-500"
-                        />
-                        
-                        {/* App UI Overlay */}
-                        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 to-transparent h-24 flex items-center justify-between px-8">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-[#0088cc] to-blue-600 rounded-xl flex items-center justify-center">
-                              <Globe className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="text-white font-bold text-lg">JourneyQ</div>
-                          </div>
-                          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                            <User className="w-6 h-6 text-white" />
-                          </div>
-                        </div>
-                        
-                        {/* Bottom Content */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-8 text-white">
-                          <h3 className="text-3xl font-bold mb-3">
-                            {appScreenshots[currentScreenIndex].title}
-                          </h3>
-                          <p className="text-lg opacity-90 mb-6 leading-relaxed">
-                            {appScreenshots[currentScreenIndex].caption}
-                          </p>
-                          
-                          {/* Mock App Navigation */}
-                          <div className="flex justify-center space-x-12">
-                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                              <Brain className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center shadow-lg">
-                              <Users className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                              <BookOpen className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                              <MapPin className="w-6 h-6 text-white" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Home Indicator */}
-                    <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-36 h-1 bg-white/60 rounded-full"></div>
-                  </div>
-
-                  {/* Phone Highlights */}
-                  <div className="absolute top-20 left-0 w-1 h-10 bg-gray-600 rounded-r-full"></div>
-                  <div className="absolute top-40 left-0 w-1 h-16 bg-gray-600 rounded-r-full"></div>
-                  <div className="absolute top-60 left-0 w-1 h-16 bg-gray-600 rounded-r-full"></div>
-                  <div className="absolute top-40 right-0 w-1 h-20 bg-gray-600 rounded-l-full"></div>
-                </div>
-
-                {/* Floating Elements */}
-                <div className="absolute -top-6 -right-6 w-12 h-12 bg-gradient-to-br from-[#0088cc] to-blue-600 rounded-full animate-pulse shadow-lg flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                
-                <div className="absolute -bottom-6 -left-6 w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full animate-bounce delay-300 shadow-lg"></div>
-                
-                <div className="absolute top-1/4 -left-8 w-8 h-8 bg-gradient-to-br from-green-500 to-teal-500 rounded-full animate-float delay-500 shadow-lg"></div>
-              </div>
-            </div>
-
-            <div className="flex justify-center mt-10 space-x-3">
-              {appScreenshots.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentScreenIndex(index)}
-                  className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                    index === currentScreenIndex 
-                      ? 'bg-[#0088cc] scale-125 shadow-lg' 
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
+        {/* Mobile Phone Frame */}
+        <div className="relative w-80 h-[640px] mx-auto animate-fade-in-up">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[3rem] shadow-2xl transform hover:scale-105 transition-transform duration-500 animate-glow">
+            
+            {/* Phone Screen */}
+            <div className="absolute inset-3 bg-black rounded-[2.5rem] overflow-hidden">
+              
+              {/* Screen Content - Fullscreen Image */}
+              <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden">
+                <img
+                  src={appScreenshots[currentScreenIndex].src}
+                  alt={appScreenshots[currentScreenIndex].title}
+                  className="w-full h-full object-cover"
                 />
-              ))}
+                
+                {/* Overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                
+                {/* Bottom Content */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
+                  <h3 className="text-2xl font-bold mb-2">
+                    {appScreenshots[currentScreenIndex].title}
+                  </h3>
+                  <p className="text-sm opacity-90 leading-relaxed">
+                    {appScreenshots[currentScreenIndex].caption}
+                  </p>
+                </div>
+              </div>
+
+              {/* Home Indicator */}
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-36 h-1 bg-white/60 rounded-full z-20"></div>
             </div>
+
+            {/* Phone Highlights */}
+            <div className="absolute top-20 left-0 w-1 h-10 bg-gray-600 rounded-r-full"></div>
+            <div className="absolute top-40 left-0 w-1 h-16 bg-gray-600 rounded-r-full"></div>
+            <div className="absolute top-60 left-0 w-1 h-16 bg-gray-600 rounded-r-full"></div>
+            <div className="absolute top-40 right-0 w-1 h-20 bg-gray-600 rounded-l-full"></div>
           </div>
+
+          {/* Floating Elements */}
+          <div className="absolute -top-6 -right-6 w-12 h-12 bg-gradient-to-br from-[#0088cc] to-blue-600 rounded-full animate-pulse shadow-lg flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          
+          <div className="absolute -bottom-6 -left-6 w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full animate-bounce delay-300 shadow-lg"></div>
+          
+          <div className="absolute top-1/4 -left-8 w-8 h-8 bg-gradient-to-br from-green-500 to-teal-500 rounded-full animate-float delay-500 shadow-lg"></div>
         </div>
-      </section>
+      </div>
+
+    </div>
+  </div>
+</section>
 
       {/* Download App Section */}
       <section className="py-24 bg-gradient-to-br from-[#0088cc] to-[#006699] relative overflow-hidden">
@@ -613,24 +553,7 @@ const Home = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-center lg:justify-start gap-6">
-                <button
-                  onClick={() => setShowQR(!showQR)}
-                  className="flex items-center gap-3 text-white hover:text-blue-200 transition-colors bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-3 border border-white/20"
-                >
-                  <QrCode className="w-6 h-6" />
-                  <span className="font-semibold">Scan QR for Quick Download</span>
-                </button>
-                
-                {showQR && (
-                  <div className="bg-white p-6 rounded-2xl shadow-2xl animate-scale-in border border-gray-100">
-                    <div className="w-32 h-32 bg-gray-200 rounded-xl flex items-center justify-center">
-                      <QrCode className="w-20 h-20 text-gray-400" />
-                    </div>
-                    <p className="text-center text-sm text-gray-600 mt-3 font-semibold">Scan to Download</p>
-                  </div>
-                )}
-              </div>
+              
             </div>
 
             <div className="flex-1 flex justify-center lg:justify-end animate-fade-in-up delay-300">
@@ -690,22 +613,7 @@ const Home = () => {
             </div>
           </div>
           
-          <div className="text-center mt-16 text-blue-200 text-lg animate-fade-in-up delay-500">
-            <div className="flex flex-wrap items-center justify-center gap-8">
-              <span className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Available for iOS 12+ and Android 8+
-              </span>
-              <span className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                Free download
-              </span>
-              <span className="flex items-center gap-2">
-                <Award className="w-5 h-5" />
-                No subscription required
-              </span>
-            </div>
-          </div>
+   
         </div>
       </section>
 
