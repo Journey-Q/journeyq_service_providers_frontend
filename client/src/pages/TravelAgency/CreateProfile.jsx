@@ -157,7 +157,7 @@ const CreateProfile = () => {
         setUploadProgress('Profile created successfully!');
         setIsCompleted(true);
         setTimeout(() => {
-          window.location.href = '/travel-agency-dashboard';
+          window.location.href = '/travel-agency/dashboard';
         }, 2000);
       } catch (error) {
         console.error('Error creating travel agency profile:', error);
