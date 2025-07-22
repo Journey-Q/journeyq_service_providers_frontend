@@ -1,14 +1,68 @@
 import {
   createBrowserRouter,
   RouterProvider,
+  Navigate,
 } from "react-router-dom";
 
 import App from '../App'
 import Home from '../components/Home';
 import Login from '../pages/Login';
 
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const accessToken = localStorage.getItem('accessToken');
+  
+  if (!accessToken) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
 
-//temporarily routing here, these should be private routes
+// Public Route Component (redirects to dashboard if already logged in)
+const PublicRoute = ({ children }) => {
+  const accessToken = localStorage.getItem('accessToken');
+  
+  if (accessToken) {
+    // Get service provider data from localStorage (matches your login logic)
+    const serviceProviderData = JSON.parse(localStorage.getItem('serviceProvider') || '{}');
+    const { serviceType, isProfileCreated } = serviceProviderData;
+    
+    if (serviceType) {
+      // If profile is not created, redirect to create profile
+      if (!isProfileCreated) {
+        switch (serviceType) {
+          case 'HOTEL':
+            return <Navigate to="/hotel/create-profile" replace />;
+          case 'TOUR_GUIDE':
+            return <Navigate to="/tour-guide/create-profile" replace />;
+          case 'TRAVEL_AGENT':
+            return <Navigate to="/travel-agency/create-profile" replace />;
+          default:
+            return <Navigate to="/" replace />;
+        }
+      } else {
+        // If profile is created, redirect to dashboard
+        switch (serviceType) {
+          case 'HOTEL':
+            return <Navigate to="/hotel/dashboard" replace />;
+          case 'TOUR_GUIDE':
+            return <Navigate to="/tour-guide/dashboard" replace />;
+          case 'TRAVEL_AGENT':
+            return <Navigate to="/travel-agency/dashboard" replace />;
+          default:
+            return <Navigate to="/" replace />;
+        }
+      }
+    }
+    
+    // If no service type found, redirect to home
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
 //hotel
 import HotelDashboard from '../pages/Hotel/Dashboard';
 import HotelBookingHistory from '../pages/Hotel/BookingHistory';
@@ -62,7 +116,11 @@ const router = createBrowserRouter([
       },
       {
         path: '/login',
-        element: <Login/>
+        element: (
+          <PublicRoute>
+            <Login/>
+          </PublicRoute>
+        )
       },
 
      
@@ -71,136 +129,226 @@ const router = createBrowserRouter([
         children:[
           {
             path: 'dashboard',
-            element: <HotelDashboard/>
+            element: (
+              <ProtectedRoute>
+                <HotelDashboard/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'booking-history',
-            element: <HotelBookingHistory/>
+            element: (
+              <ProtectedRoute>
+                <HotelBookingHistory/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'payment-history',
-            element: <HotelPaymentHistory/>
+            element: (
+              <ProtectedRoute>
+                <HotelPaymentHistory/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'create-profile',
-            element: <HotelCreateProfile/>
+            element: (
+              <ProtectedRoute>
+                <HotelCreateProfile/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'room-service',
-            element: <HotelRoomService/>
+            element: (
+              <ProtectedRoute>
+                <HotelRoomService/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'promotions',
-            element: <HotelPromotions/>
+            element: (
+              <ProtectedRoute>
+                <HotelPromotions/>
+              </ProtectedRoute>
+            )
           },
-
 
           {
             path: 'bankdetails',
-            element: <HotelBankDetails/>
+            element: (
+              <ProtectedRoute>
+                <HotelBankDetails/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'chat',
-            element: <HotelChat/>
+            element: (
+              <ProtectedRoute>
+                <HotelChat/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'settings',
-            element: <HotelSettings/>
+            element: (
+              <ProtectedRoute>
+                <HotelSettings/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'reviews',
-            element: <HotelReview/>
+            element: (
+              <ProtectedRoute>
+                <HotelReview/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'pending-approval',
-            element: <HotelPendingApproval/>
+            element: (
+              <ProtectedRoute>
+                <HotelPendingApproval/>
+              </ProtectedRoute>
+            )
           },
 
           //inside pages, edits, creates
           {
             path:'edit-room-service',
-            element: <HotelEditRoomService/>
+            element: (
+              <ProtectedRoute>
+                <HotelEditRoomService/>
+              </ProtectedRoute>
+            )
           }
-
-
         ]
-
       },
 
       //paths for tour guide
       {
         path: '/tour-guide',
         children:[
-          
-            {
-              path: 'dashboard',
-              element: <TourGuideDashboard/>
-            },
-
-            {
-              path: 'booking-history',
-              element: <TourGuideBookingHistory/>
-            },
-
-            {
-              path: 'payment-history',
-              element: <TourGuidePaymentHistory/>
-            },
-
-            {
-              path: 'tours',
-              element: <TourGuideTours/>
-            },
-
-            {
-              path: 'settings',
-              element: <TourGuideSettings/>
-            },
-
-            {
-              path: 'chat',
-              element: <TourGuideChat/>
-            },
-
-            {
-              path:'promotions',
-              element:<TourGuidePromotions/>
-            },
-
-            {
-            path: 'bankdetails',
-            element: <TourGuideBankDetails/>
+          {
+            path: 'dashboard',
+            element: (
+              <ProtectedRoute>
+                <TourGuideDashboard/>
+              </ProtectedRoute>
+            )
           },
 
           {
-              path:'tour-details/:id',
-              element:<TourGuideDisplayTours/>
-            },
+            path: 'booking-history',
+            element: (
+              <ProtectedRoute>
+                <TourGuideBookingHistory/>
+              </ProtectedRoute>
+            )
+          },
 
-            {
+          {
+            path: 'payment-history',
+            element: (
+              <ProtectedRoute>
+                <TourGuidePaymentHistory/>
+              </ProtectedRoute>
+            )
+          },
+
+          {
+            path: 'tours',
+            element: (
+              <ProtectedRoute>
+                <TourGuideTours/>
+              </ProtectedRoute>
+            )
+          },
+
+          {
+            path: 'settings',
+            element: (
+              <ProtectedRoute>
+                <TourGuideSettings/>
+              </ProtectedRoute>
+            )
+          },
+
+          {
+            path: 'chat',
+            element: (
+              <ProtectedRoute>
+                <TourGuideChat/>
+              </ProtectedRoute>
+            )
+          },
+
+          {
+            path:'promotions',
+            element: (
+              <ProtectedRoute>
+                <TourGuidePromotions/>
+              </ProtectedRoute>
+            )
+          },
+
+          {
+            path: 'bankdetails',
+            element: (
+              <ProtectedRoute>
+                <TourGuideBankDetails/>
+              </ProtectedRoute>
+            )
+          },
+
+          {
+            path:'tour-details/:id',
+            element: (
+              <ProtectedRoute>
+                <TourGuideDisplayTours/>
+              </ProtectedRoute>
+            )
+          },
+
+          {
             path: 'reviews',
-            element: <TourGuideReview/>
+            element: (
+              <ProtectedRoute>
+                <TourGuideReview/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'pending-approval',
-            element: <TourGuidePendingApproval/>
+            element: (
+              <ProtectedRoute>
+                <TourGuidePendingApproval/>
+              </ProtectedRoute>
+            )
           },
 
-            {
-              path:'create-profile',
-              element: <TourGuideCreateProfile/>
-            }
-          
+          {
+            path:'create-profile',
+            element: (
+              <ProtectedRoute>
+                <TourGuideCreateProfile/>
+              </ProtectedRoute>
+            )
+          }
         ]
       },
 
@@ -210,62 +358,110 @@ const router = createBrowserRouter([
         children:[
           {
             path:'dashboard',
-            element: <TravelAgencyDashboard/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyDashboard/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'booking-history',
-            element: <TravelAgencyBookingHistory/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyBookingHistory/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'payment-history',
-            element: <TravelAgencyPaymentHistory/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyPaymentHistory/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'settings',
-            element: <TravelAgencySettings/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencySettings/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'vehicles',
-            element: <TravelAgencyVehicles/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyVehicles/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'chat',
-            element: <TravelAgencyChat/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyChat/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'bankdetails',
-            element: <TravelAgencyBankDetails/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyBankDetails/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'create-profile',
-            element: <TravelAgencyCreateProfile/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyCreateProfile/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'reviews',
-            element: <TravelAgencyReview/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyReview/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'drivers',
-            element: <TravelAgencyDrivers/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyDrivers/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'pending-approval',
-            element: <TravelAgencyPendingApproval/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyPendingApproval/>
+              </ProtectedRoute>
+            )
           },
 
           {
             path: 'promotions',
-            element: <TravelAgencyPromotions/>
+            element: (
+              <ProtectedRoute>
+                <TravelAgencyPromotions/>
+              </ProtectedRoute>
+            )
           }
         ]
       }
