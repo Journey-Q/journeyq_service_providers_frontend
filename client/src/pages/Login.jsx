@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import {
@@ -14,14 +12,14 @@ import {
   FileText,
   ArrowLeft,
   Loader2,
-  Facebook,
-  Twitter,
   CheckCircle,
   AlertCircle,
   UserPlus,
   LogIn,
+  Star
 } from "lucide-react"
-import logo from "../assets/images/logo.png"
+
+import authService from "../api_service/Authservice";
 
 const Login = () => {
   const navigate = useNavigate()
@@ -30,6 +28,8 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState({ type: '', message: '' })
+  const [isCompleted, setIsCompleted] = useState(false)
 
   // Form states
   const [loginData, setLoginData] = useState({
@@ -38,13 +38,13 @@ const Login = () => {
   })
 
   const [signupData, setSignupData] = useState({
-    businessName: "", // Changed from username to businessName
+    businessName: "",
     email: "",
     password: "",
     confirmPassword: "",
     phone: "",
     address: "",
-    serviceType: "", // New field for service type
+    serviceType: "",
     businessRegNumber: "",
     termsAccepted: false,
     privacyAccepted: false,
@@ -83,9 +83,11 @@ const Login = () => {
   const handleFormToggle = (newIsLogin) => {
     if (newIsLogin !== isLogin) {
       setIsTransitioning(true)
+      setSubmitMessage({ type: '', message: '' })
+      setErrors({})
+      setIsCompleted(false) // Reset completion state
       setTimeout(() => {
         setIsLogin(newIsLogin)
-        setErrors({})
         setTimeout(() => {
           setIsTransitioning(false)
         }, 100)
@@ -128,7 +130,7 @@ const Login = () => {
     const newErrors = { ...errors }
 
     switch (name) {
-      case "businessName": // Updated from username to businessName
+      case "businessName":
         if (!value) {
           newErrors.businessName = "Business Name is required"
         } else if (value.length < 3 || value.length > 50) {
@@ -205,46 +207,250 @@ const Login = () => {
   // Handle input changes
   const handleLoginChange = (name, value) => {
     setLoginData((prev) => ({ ...prev, [name]: value }))
+    setSubmitMessage({ type: '', message: '' })
+    
+    // Clear any previous errors for this field
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
   }
 
   const handleSignupChange = (name, value) => {
     setSignupData((prev) => ({ ...prev, [name]: value }))
     validateField(name, value)
+    setSubmitMessage({ type: '', message: '' })
 
     if (name === "password") {
       setPasswordStrength(calculatePasswordStrength(value))
     }
   }
 
+  // Validate all signup fields
+  const validateAllSignupFields = () => {
+    let isValid = true
+    const fieldsToValidate = ['businessName', 'email', 'password', 'confirmPassword', 'phone', 'businessRegNumber', 'serviceType']
+    
+    fieldsToValidate.forEach(field => {
+      validateField(field, signupData[field])
+    })
+
+    // Check for any validation errors
+    const hasFieldErrors = fieldsToValidate.some(field => errors[field])
+    if (hasFieldErrors) isValid = false
+
+    // Check terms and privacy acceptance
+    if (!signupData.termsAccepted) {
+      setErrors(prev => ({ ...prev, termsAccepted: "You must accept the terms and conditions" }))
+      isValid = false
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors.termsAccepted
+        return newErrors
+      })
+    }
+
+    if (!signupData.privacyAccepted) {
+      setErrors(prev => ({ ...prev, privacyAccepted: "You must accept the privacy policy" }))
+      isValid = false
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors.privacyAccepted
+        return newErrors
+      })
+    }
+
+    return isValid
+  }
+
+  // Success Screen Component for Signup
+  const SignupSuccessScreen = () => (
+    <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
+      <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mb-4">
+        <CheckCircle className="w-10 h-10 text-white" />
+      </div>
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-white">Account Created Successfully!</h2>
+        <div className="space-y-2">
+          <p className="text-white/80 text-lg">
+            Thank you for joining JourneyQ!
+          </p>
+          <p className="text-white/70">
+            Please wait for admin approval before you can login.
+          </p>
+          <p className="text-white/60 text-sm">
+            You will receive an email notification once your account is approved.
+          </p>
+        </div>
+      </div>
+      <div className="flex space-x-1">
+        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+      </div>
+      <div className="mt-6">
+        <p className="text-white/60 text-sm">
+          Redirecting to login in 5 seconds...
+        </p>
+        <button
+          onClick={() => {
+            setIsCompleted(false)
+            handleFormToggle(true)
+          }}
+          className="mt-2 text-blue-300 hover:text-blue-200 text-sm underline"
+        >
+          Go to Login Now
+        </button>
+      </div>
+    </div>
+  )
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setSubmitMessage({ type: '', message: '' })
 
-    // Validate all fields before submission
-    if (!isLogin) {
-      validateField("businessName", signupData.businessName)
-      validateField("email", signupData.email)
-      validateField("password", signupData.password)
-      validateField("confirmPassword", signupData.confirmPassword)
-      validateField("phone", signupData.phone)
-      validateField("businessRegNumber", signupData.businessRegNumber)
-      validateField("serviceType", signupData.serviceType)
-    }
+    try {
+      let response;
+      
+      if (isLogin) {
+        // Validate login fields
+        if (!loginData.emailOrUsername || !loginData.password) {
+          setSubmitMessage({ type: 'error', message: 'Please fill in all required fields' })
+          setIsLoading(false)
+          return
+        }
 
-    // Simulate API call
-    setTimeout(() => {
+        // Call login API
+        response = await authService.login(loginData)
+        
+        if (response.success) {
+          setSubmitMessage({ type: 'success', message: response.message })
+          
+          // Clear form data on success
+          setLoginData({ emailOrUsername: "", password: "" })
+          
+          // Get service provider data from response or localStorage
+          const serviceProviderData = response.data || JSON.parse(localStorage.getItem('serviceProvider'))
+          
+          if (serviceProviderData) {
+            const { serviceType, isProfileCreated } = serviceProviderData
+            
+            // Check if profile is created
+            if (!isProfileCreated) {
+              // Navigate to profile creation based on service type
+              setTimeout(() => {
+                switch (serviceType) {
+                  case 'HOTEL':
+                    navigate('/hotel/create-profile')
+                    break
+                  case 'TOUR_GUIDE':
+                    navigate('/tour-guide/create-profile')
+                    break
+                  case 'TRAVEL_AGENCY':
+                    navigate('/travel-agency/create-profile')
+                    break
+                  default:
+                    navigate('/dashboard') // fallback
+                    break
+                }
+              }, 1500)
+            } else {
+              // Navigate to dashboard based on service type
+              setTimeout(() => {
+                switch (serviceType) {
+                  case 'HOTEL':
+                    navigate('/hotel/dashboard')
+                    break
+                  case 'TOUR_GUIDE':
+                    navigate('/tour-guide/dashboard')
+                    break
+                  case 'TRAVEL_AGENCY':
+                    navigate('/travel-agency/dashboard')
+                    break
+                  default:
+                    navigate('/dashboard') // fallback
+                    break
+                }
+              }, 1500)
+            }
+          }
+        } else {
+          setSubmitMessage({ type: 'error', message: response.message })
+          
+          // Handle field-specific errors from backend
+          if (response.errors) {
+            setErrors(prev => ({ ...prev, ...response.errors }))
+          }
+        }
+
+      } else {
+        // SIGNUP LOGIC
+        // Validate all signup fields
+        if (!validateAllSignupFields()) {
+          setSubmitMessage({ type: 'error', message: 'Please fix the errors above' })
+          setIsLoading(false)
+          return
+        }
+
+        // Call signup API
+        response = await authService.signup(signupData)
+        
+        if (response.success) {
+          // Show success screen for signup with admin approval notice
+          setIsCompleted(true)
+          
+          // Clear form data on success
+          setSignupData({
+            businessName: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
+            phone: "",
+            address: "",
+            serviceType: "",
+            businessRegNumber: "",
+            termsAccepted: false,
+            privacyAccepted: false,
+          })
+          
+          // Clear any validation errors
+          setErrors({})
+          
+          // Switch to login form after a delay
+          setTimeout(() => {
+            setIsCompleted(false)
+            handleFormToggle(true) // Switch to login form
+          }, 5000)
+          
+        } else {
+          setSubmitMessage({ type: 'error', message: response.message })
+          
+          // Handle field-specific errors from backend
+          if (response.errors) {
+            setErrors(prev => ({ ...prev, ...response.errors }))
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Authentication error:', error)
+      setSubmitMessage({ 
+        type: 'error', 
+        message: 'An unexpected error occurred. Please try again.' 
+      })
+    } finally {
       setIsLoading(false)
-      console.log(isLogin ? "Login submitted:" : "Signup submitted:", isLogin ? loginData : signupData)
-    }, 2000)
+    }
   }
 
   const handleGoBack = () => {
     navigate(-1)
-  }
-
-  const handleSocialLogin = (provider) => {
-    console.log(`${provider} login clicked`)
   }
 
   return (
@@ -315,18 +521,6 @@ const Login = () => {
                        0 0 60px rgba(59, 130, 246, 0.15),
                        inset 0 0 15px rgba(255, 255, 255, 0.15);
           }
-        }
-        
-        @keyframes backgroundZoomIn {
-          0% { transform: scale(1); opacity: 1; }
-          85% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(1.15); opacity: 0.9; }
-        }
-        
-        @keyframes backgroundFadeIn {
-          0% { transform: scale(1.1); opacity: 0; }
-          15% { transform: scale(1.05); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
         }
         
         .form-enter {
@@ -472,15 +666,6 @@ const Login = () => {
           background: linear-gradient(180deg, rgba(59, 130, 246, 0.7), rgba(37, 99, 235, 0.7));
         }
         
-        .toggle-button {
-          transition: all 0.3s ease-out;
-        }
-        
-        .toggle-button:hover {
-          background: rgba(255, 255, 255, 0.05);
-          transform: translateY(-1px);
-        }
-        
         .interactive-hover {
           transition: all 0.3s ease-out;
         }
@@ -523,11 +708,7 @@ const Login = () => {
                 <div
                   key={index}
                   className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
-                    index === currentImageIndex 
-                      ? "opacity-100 background-zoom-in" 
-                      : index === (currentImageIndex - 1 + backgroundImages.length) % backgroundImages.length
-                      ? "opacity-0 background-fade-in"
-                      : "opacity-0"
+                    index === currentImageIndex ? "opacity-100" : "opacity-0"
                   }`}
                   style={{ backgroundImage: `url('${image}')` }}
                 />
@@ -550,6 +731,22 @@ const Login = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Success/Error Message */}
+              {submitMessage.message && !isCompleted && (
+                <div className={`mb-4 p-3 rounded-md flex items-center gap-2 ${
+                  submitMessage.type === 'success' 
+                    ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
+                    : 'bg-red-500/20 border border-red-500/30 text-red-200'
+                }`}>
+                  {submitMessage.type === 'success' ? (
+                    <CheckCircle className="h-4 w-4" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4" />
+                  )}
+                  <span className="text-sm">{submitMessage.message}</span>
+                </div>
+              )}
 
               <div className="flex bg-white/10 rounded-lg p-1 mb-6 scale-enter delay-100">
                 <button
@@ -578,329 +775,402 @@ const Login = () => {
 
               <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 <div className={`${isTransitioning ? "form-exit" : "form-enter"}`}>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {isLogin ? (
-                      <div className="space-y-4">
-                        <div className="space-y-1 field-enter delay-100">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <User className="h-4 w-4 mr-2 text-blue-300" />
-                            Email or Business Name
-                          </label>
-                          <input
-                            type="text"
-                            value={loginData.emailOrUsername}
-                            onChange={(e) => handleLoginChange("emailOrUsername", e.target.value)}
-                            className="w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover"
-                            placeholder="Email or Business Name"
-                          />
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-200">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <Lock className="h-4 w-4 mr-2 text-blue-300" />
-                            Password
-                          </label>
-                          <div className="relative">
+                  {/* Show success screen for signup completion */}
+                  {!isLogin && isCompleted ? (
+                    <SignupSuccessScreen />
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      {isLogin ? (
+                        <div className="space-y-4">
+                          <div className="space-y-1 field-enter delay-100">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <User className="h-4 w-4 mr-2 text-blue-300" />
+                              Email or Business Name
+                            </label>
                             <input
-                              type={showPassword ? "text" : "password"}
-                              value={loginData.password}
-                              onChange={(e) => handleLoginChange("password", e.target.value)}
-                              className="w-full px-4 py-2.5 pr-10 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover"
-                              placeholder="Password"
+                              type="text"
+                              value={loginData.emailOrUsername}
+                              onChange={(e) => handleLoginChange("emailOrUsername", e.target.value)}
+                              className="w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover"
+                              placeholder="Email or Business Name"
+                              required
                             />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-all duration-200"
-                            >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
+                            {errors.emailOrUsername && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.emailOrUsername}
+                              </p>
+                            )}
                           </div>
-                        </div>
 
-                        <div className="flex items-center justify-between text-sm field-enter delay-300">
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={rememberMe}
-                              onChange={(e) => setRememberMe(e.target.checked)}
-                              className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-400"
-                            />
-                            <span className="ml-2 text-white/80">Remember me</span>
-                          </label>
-                          <Link
-                            to="/forgot-password"
-                            className="text-blue-300 hover:text-blue-200 transition-colors"
-                          >
-                            Forgot Password?
-                          </Link>
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full glass-button text-white font-semibold py-3 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 field-enter delay-400"
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Signing In...
-                            </>
-                          ) : (
-                            <>
-                              <LogIn className="h-4 w-4" />
-                              Sign In
-                            </>
-                          )}
-                        </button>
-
-                        <div className="text-center text-sm field-enter delay-500">
-                          <p className="text-white/80">
-                            Don't have an account?{" "}
-                            <button
-                              onClick={() => handleFormToggle(false)}
-                              className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
-                            >
-                              Sign Up
-                            </button>
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="space-y-1 field-enter delay-100">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <Building className="h-4 w-4 mr-2 text-blue-300" />
-                            Business Name
-                          </label>
-                          <input
-                            type="text"
-                            value={signupData.businessName}
-                            onChange={(e) => handleSignupChange("businessName", e.target.value)}
-                            className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                              errors.businessName ? "border-red-400 wiggle-error" : ""
-                            }`}
-                            placeholder="Enter your business name"
-                          />
-                          {errors.businessName && (
-                            <p className="text-xs text-red-300 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {errors.businessName}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-150">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <User className="h-4 w-4 mr-2 text-blue-300" />
-                            Service Type
-                          </label>
-                          <select
-                            value={signupData.serviceType}
-                            onChange={(e) => handleSignupChange("serviceType", e.target.value)}
-                            className={`w-full px-4 py-2.5 glass-select rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                              errors.serviceType ? "border-red-400 wiggle-error" : ""
-                            }`}
-                          >
-                            <option value="" disabled>Select Service Type</option>
-                            <option value="HOTEL">Hotel</option>
-                            <option value="TOUR_GUIDE">Tour Guide</option>
-                            <option value="TRAVEL_AGENT">Travel Agent</option>
-                          </select>
-                          {errors.serviceType && (
-                            <p className="text-xs text-red-300 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {errors.serviceType}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-200">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <Mail className="h-4 w-4 mr-2 text-blue-300" />
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            value={signupData.email}
-                            onChange={(e) => handleSignupChange("email", e.target.value)}
-                            className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                              errors.email ? "border-red-400 wiggle-error" : ""
-                            }`}
-                            placeholder="Enter your email"
-                          />
-                          {errors.email && (
-                            <p className="text-xs text-red-300 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {errors.email}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-300">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <Lock className="h-4 w-4 mr-2 text-blue-300" />
-                            Password
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={showPassword ? "text" : "password"}
-                              value={signupData.password}
-                              onChange={(e) => handleSignupChange("password", e.target.value)}
-                              className={`w-full px-4 py-2.5 pr-10 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                                errors.password ? "border-red-400 wiggle-error" : ""
-                              }`}
-                              placeholder="Create a password"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-all duration-200"
-                            >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                          </div>
-                          {signupData.password && (
-                            <div className="mt-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-white/80">Password Strength:</span>
-                                <span className="flex items-center gap-1" style={{ color: passwordStrength.color }}>
-                                  {passwordStrength.score >= 4 && <CheckCircle className="h-3 w-3" />}
-                                  {passwordStrength.feedback}
-                                </span>
-                              </div>
-                              <div className="w-full bg-white/10 rounded-full h-1 mt-1">
-                                <div
-                                  className="h-1 rounded-full transition-all duration-300"
-                                  style={{
-                                    width: `${(passwordStrength.score / 6) * 100}%`,
-                                    backgroundColor: passwordStrength.color,
-                                  }}
-                                />
-                              </div>
+                          <div className="space-y-1 field-enter delay-200">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <Lock className="h-4 w-4 mr-2 text-blue-300" />
+                              Password
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                value={loginData.password}
+                                onChange={(e) => handleLoginChange("password", e.target.value)}
+                                className="w-full px-4 py-2.5 pr-10 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover"
+                                placeholder="Password"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-all duration-200"
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
                             </div>
-                          )}
-                          {errors.password && (
-                            <p className="text-xs text-red-300 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {errors.password}
-                            </p>
-                          )}
-                        </div>
+                            {errors.password && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.password}
+                              </p>
+                            )}
+                          </div>
 
-                        <div className="space-y-1 field-enter delay-400">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <Lock className="h-4 w-4 mr-2 text-blue-300" />
-                            Confirm Password
-                          </label>
-                          <input
-                            type="password"
-                            value={signupData.confirmPassword}
-                            onChange={(e) => handleSignupChange("confirmPassword", e.target.value)}
-                            className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                              errors.confirmPassword ? "border-red-400 wiggle-error" : ""
-                            }`}
-                            placeholder="Confirm your password"
-                          />
-                          {errors.confirmPassword && (
-                            <p className="text-xs text-red-300 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {errors.confirmPassword}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-500">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <Phone className="h-4 w-4 mr-2 text-blue-300" />
-                            Phone Number
-                          </label>
-                          <input
-                            type="tel"
-                            value={signupData.phone}
-                            onChange={(e) => handleSignupChange("phone", e.target.value)}
-                            className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                              errors.phone ? "border-red-400 wiggle-error" : ""
-                            }`}
-                            placeholder="Enter your phone number"
-                          />
-                          {errors.phone && (
-                            <p className="text-xs text-red-300 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {errors.phone}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-600">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <FileText className="h-4 w-4 mr-2 text-blue-300" />
-                            Business Registration Number
-                          </label>
-                          <input
-                            type="text"
-                            value={signupData.businessRegNumber}
-                            onChange={(e) => handleSignupChange("businessRegNumber", e.target.value)}
-                            className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
-                              errors.businessRegNumber ? "border-red-400 wiggle-error" : ""
-                            }`}
-                            placeholder="Enter registration number"
-                          />
-                          {errors.businessRegNumber && (
-                            <p className="text-xs text-red-300 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {errors.businessRegNumber}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-1 field-enter delay-700">
-                          <label className="flex items-center text-sm font-medium text-white/90">
-                            <MapPin className="h-4 w-4 mr-2 text-blue-300" />
-                            Business Address
-                          </label>
-                          <textarea
-                            value={signupData.address}
-                            onChange={(e) => handleSignupChange("address", e.target.value)}
-                            className="w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 min-h-[80px] resize-none interactive-hover"
-                            placeholder="Enter your business address"
-                            maxLength={500}
-                          />
-                          <p className="text-xs text-white/60 text-right">{signupData.address.length}/500</p>
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={isLoading || !signupData.termsAccepted || !signupData.privacyAccepted}
-                          className="w-full glass-button text-white font-semibold py-3 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 field-enter delay-900"
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Creating Account...
-                            </>
-                          ) : (
-                            <>
-                              <UserPlus className="h-4 w-4" />
-                              Create Account
-                            </>
-                          )}
-                        </button>
-
-                        <div className="text-center text-sm field-enter delay-1000">
-                          <p className="text-white/80">
-                            Already have an account?{" "}
-                            <button
-                              onClick={() => handleFormToggle(true)}
-                              className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
+                          <div className="flex items-center justify-between text-sm field-enter delay-300">
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-400"
+                              />
+                              <span className="ml-2 text-white/80">Remember me</span>
+                            </label>
+                            <Link
+                              to="/forgot-password"
+                              className="text-blue-300 hover:text-blue-200 transition-colors"
                             >
-                              Sign In
-                            </button>
-                          </p>
+                              Forgot Password?
+                            </Link>
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full glass-button text-white font-semibold py-3 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 field-enter delay-400"
+                          >
+                            {isLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Signing In...
+                              </>
+                            ) : (
+                              <>
+                                <LogIn className="h-4 w-4" />
+                                Sign In
+                              </>
+                            )}
+                          </button>
+
+                          <div className="text-center text-sm field-enter delay-500">
+                            <p className="text-white/80">
+                              Don't have an account?{" "}
+                              <button
+                                type="button"
+                                onClick={() => handleFormToggle(false)}
+                                className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
+                              >
+                                Sign Up
+                              </button>
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </form>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="space-y-1 field-enter delay-100">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <Building className="h-4 w-4 mr-2 text-blue-300" />
+                              Business Name
+                            </label>
+                            <input
+                              type="text"
+                              value={signupData.businessName}
+                              onChange={(e) => handleSignupChange("businessName", e.target.value)}
+                              className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
+                                errors.businessName ? "border-red-400 wiggle-error" : ""
+                              }`}
+                              placeholder="Enter your business name"
+                              required
+                            />
+                            {errors.businessName && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.businessName}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 field-enter delay-150">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <User className="h-4 w-4 mr-2 text-blue-300" />
+                              Service Type
+                            </label>
+                            <select
+                              value={signupData.serviceType}
+                              onChange={(e) => handleSignupChange("serviceType", e.target.value)}
+                              className={`w-full px-4 py-2.5 glass-select rounded-md text-gray-800 ${
+                                errors.serviceType ? "border-red-400 wiggle-error" : ""
+                              }`}
+                              required
+                            >
+                              <option value="" disabled>Select Service Type</option>
+                              <option value="HOTEL">Hotel</option>
+                              <option value="TOUR_GUIDE">Tour Guide</option>
+                              <option value="TRAVEL_AGENCY">Travel Agency</option>
+                            </select>
+                            {errors.serviceType && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.serviceType}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 field-enter delay-200">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <Mail className="h-4 w-4 mr-2 text-blue-300" />
+                              Email Address
+                            </label>
+                            <input
+                              type="email"
+                              value={signupData.email}
+                              onChange={(e) => handleSignupChange("email", e.target.value)}
+                              className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
+                                errors.email ? "border-red-400 wiggle-error" : ""
+                              }`}
+                              placeholder="Enter your email"
+                              required
+                            />
+                            {errors.email && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.email}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 field-enter delay-300">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <Lock className="h-4 w-4 mr-2 text-blue-300" />
+                              Password
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                value={signupData.password}
+                                onChange={(e) => handleSignupChange("password", e.target.value)}
+                                className={`w-full px-4 py-2.5 pr-10 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
+                                  errors.password ? "border-red-400 wiggle-error" : ""
+                                }`}
+                                placeholder="Create a password"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-all duration-200"
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                            {signupData.password && (
+                              <div className="mt-2">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-white/80">Password Strength:</span>
+                                  <span className="flex items-center gap-1" style={{ color: passwordStrength.color }}>
+                                    {passwordStrength.score >= 4 && <CheckCircle className="h-3 w-3" />}
+                                    {passwordStrength.feedback}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-white/10 rounded-full h-1 mt-1">
+                                  <div
+                                    className="h-1 rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${(passwordStrength.score / 6) * 100}%`,
+                                      backgroundColor: passwordStrength.color,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                            {errors.password && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.password}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 field-enter delay-400">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <Lock className="h-4 w-4 mr-2 text-blue-300" />
+                              Confirm Password
+                            </label>
+                            <input
+                              type="password"
+                              value={signupData.confirmPassword}
+                              onChange={(e) => handleSignupChange("confirmPassword", e.target.value)}
+                              className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
+                                errors.confirmPassword ? "border-red-400 wiggle-error" : ""
+                              }`}
+                              placeholder="Confirm your password"
+                              required
+                            />
+                            {errors.confirmPassword && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.confirmPassword}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 field-enter delay-500">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <Phone className="h-4 w-4 mr-2 text-blue-300" />
+                              Phone Number
+                            </label>
+                            <input
+                              type="tel"
+                              value={signupData.phone}
+                              onChange={(e) => handleSignupChange("phone", e.target.value)}
+                              className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
+                                errors.phone ? "border-red-400 wiggle-error" : ""
+                              }`}
+                              placeholder="Enter your phone number"
+                              required
+                            />
+                            {errors.phone && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.phone}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 field-enter delay-600">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <FileText className="h-4 w-4 mr-2 text-blue-300" />
+                              Business Registration Number
+                            </label>
+                            <input
+                              type="text"
+                              value={signupData.businessRegNumber}
+                              onChange={(e) => handleSignupChange("businessRegNumber", e.target.value)}
+                              className={`w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 interactive-hover ${
+                                errors.businessRegNumber ? "border-red-400 wiggle-error" : ""
+                              }`}
+                              placeholder="Enter registration number"
+                              required
+                            />
+                            {errors.businessRegNumber && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.businessRegNumber}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 field-enter delay-700">
+                            <label className="flex items-center text-sm font-medium text-white/90">
+                              <MapPin className="h-4 w-4 mr-2 text-blue-300" />
+                              Business Address
+                            </label>
+                            <textarea
+                              value={signupData.address}
+                              onChange={(e) => handleSignupChange("address", e.target.value)}
+                              className="w-full px-4 py-2.5 glass-input rounded-md text-gray-800 placeholder-gray-400 min-h-[80px] resize-none interactive-hover"
+                              placeholder="Enter your business address"
+                              maxLength={500}
+                              required
+                            />
+                            <p className="text-xs text-white/60 text-right">{signupData.address.length}/500</p>
+                          </div>
+
+                          <div className="space-y-2 field-enter delay-800">
+                            <label className="flex items-start">
+                              <input
+                                type="checkbox"
+                                checked={signupData.termsAccepted}
+                                onChange={(e) => handleSignupChange("termsAccepted", e.target.checked)}
+                                className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-400 mt-0.5 mr-2"
+                              />
+                              <span className="text-sm text-white/80">
+                                I accept the{" "}
+                                <Link to="/terms" className="text-blue-300 hover:text-blue-200">
+                                  Terms and Conditions
+                                </Link>
+                              </span>
+                            </label>
+                            {errors.termsAccepted && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.termsAccepted}
+                              </p>
+                            )}
+
+                            <label className="flex items-start">
+                              <input
+                                type="checkbox"
+                                checked={signupData.privacyAccepted}
+                                onChange={(e) => handleSignupChange("privacyAccepted", e.target.checked)}
+                                className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-400 mt-0.5 mr-2"
+                              />
+                              <span className="text-sm text-white/80">
+                                I accept the{" "}
+                                <Link to="/privacy" className="text-blue-300 hover:text-blue-200">
+                                  Privacy Policy
+                                </Link>
+                              </span>
+                            </label>
+                            {errors.privacyAccepted && (
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {errors.privacyAccepted}
+                              </p>
+                            )}
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={isLoading || !signupData.termsAccepted || !signupData.privacyAccepted}
+                            className="w-full glass-button text-white font-semibold py-3 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 field-enter delay-900"
+                          >
+                            {isLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Creating Account...
+                              </>
+                            ) : (
+                              <>
+                                <UserPlus className="h-4 w-4" />
+                                Create Account
+                              </>
+                            )}
+                          </button>
+
+                          <div className="text-center text-sm field-enter delay-1000">
+                            <p className="text-white/80">
+                              Already have an account?{" "}
+                              <button
+                                type="button"
+                                onClick={() => handleFormToggle(true)}
+                                className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
+                              >
+                                Sign In
+                              </button>
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </form>
+                  )}
                 </div>
               </div>
             </div>
