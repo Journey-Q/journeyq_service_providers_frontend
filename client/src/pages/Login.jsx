@@ -364,7 +364,7 @@ const Login = () => {
                     console.log('Navigating to /tour-guide/create-profile') // Debug log
                     navigate('/tour-guide/create-profile')
                     break
-                  case 'TRAVEL_AGENCY':
+                  case 'TRAVEL_AGENT':
                     console.log('Navigating to /travel-agency/create-profile') // Debug log
                     navigate('/travel-agency/create-profile')
                     break
@@ -388,7 +388,7 @@ const Login = () => {
                     console.log('Navigating to /tour-guide/dashboard') // Debug log
                     navigate('/tour-guide/dashboard')
                     break
-                  case 'TRAVEL_AGENCY':
+                  case 'TRAVEL_AGENT':
                     console.log('Navigating to /travel-agency/dashboard') // Debug log
                     navigate('/travel-agency/dashboard')
                     break
@@ -965,7 +965,7 @@ const Login = () => {
                               <option value="" disabled>Select Service Type</option>
                               <option value="HOTEL">Hotel</option>
                               <option value="TOUR_GUIDE">Tour Guide</option>
-                              <option value="TRAVEL_AGENCY">Travel Agency</option>
+                              <option value="TRAVEL_AGENT">Travel Agency</option>
                             </select>
                             {errors.serviceType && (
                               <p className="text-xs text-red-300 flex items-center gap-1">
