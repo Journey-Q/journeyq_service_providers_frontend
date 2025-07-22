@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FiHome,
   FiCalendar,
@@ -14,9 +15,16 @@ import {
 import { Building2 as AiOutlineBank } from 'lucide-react';
 
 const SidebarHotel = () => {
-  const [activeRoute, setActiveRoute] = useState('/hotel/dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeRoute, setActiveRoute] = useState(location.pathname);
   const [userDetails, setUserDetails] = useState(null);
   const [imageError, setImageError] = useState(false);
+
+  // Update active route when location changes
+  useEffect(() => {
+    setActiveRoute(location.pathname);
+  }, [location.pathname]);
 
   // Fetch data from localStorage
   useEffect(() => {
@@ -58,24 +66,27 @@ const SidebarHotel = () => {
 
   const handleLogout = () => {
     try {
+      // Clear all authentication and user data
       localStorage.removeItem('accessToken');
       localStorage.removeItem('tokenExpiresIn');
       localStorage.removeItem('serviceProvider');
       localStorage.removeItem('hotel_profile');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userRole');
-      
-      console.log('Logout successful - all tokens and profile data removed from localStorage');
-      alert('Logged out successfully!');
-      
-      // In your actual app with react-router, use:
-      // navigate('/login');
+
+      // Navigate to login page
+      navigate('/login');
     } catch (error) {
       console.error('Error during logout:', error);
+      // Still navigate to login even if there's an error clearing storage
+      navigate('/login');
     }
   };
 
   const handleNavClick = (path) => {
+    // Navigate to the selected path
+    navigate(path);
+    // Update active route state
     setActiveRoute(path);
   };
 

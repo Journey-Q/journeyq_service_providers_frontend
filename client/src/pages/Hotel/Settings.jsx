@@ -422,15 +422,7 @@ const Settings = () => {
                             <p className="font-medium text-gray-800">{profileData.address}</p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <Clock className="w-5 h-5 text-[#0088cc]" />
-                          <div>
-                            <p className="text-sm text-gray-600">Operating Hours</p>
-                            <p className="font-medium text-gray-800">
-                              {profileData.open247 ? 'Open 24/7' : 'Specific Hours'}
-                            </p>
-                          </div>
-                        </div>
+                       
                       </div>
                       
                       {/* Google Maps Embed */}

@@ -67,33 +67,8 @@ const router = createBrowserRouter([
         path: '/login',
         element: <Login/>
       },
-      {
-        path: '/register',
-        element: <Register/>,
-        children: [
-          {
-            path: 'hotel',  // Note: removed leading slash
-            element: <RegisterAsHotel/>
-          },
-          {
-            path: 'tour-guide',
-            element: <RegisterAsTourGuide/>
-          },
-          {
-            path: 'travel-agency',
-            element: <RegisterAsTravelAgency/>
-          }
-        ]
-      },
 
-      // hotel profile making
-      // {
-      //   path:'/hotel',
-      //   element:
-      // }
-
-      // dashboard routes for now, should be private routes this is temporary
-      //paths for hotel
+     
       {
         path: '/hotel',
         children:[
