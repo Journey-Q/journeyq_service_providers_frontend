@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import img1 from '../assets/images/logo.png'
 import trip_post from '../assets/images/trip_post.jpg'
+import smartplan from '../assets/images/smartplan.jpg'
+import marketplace from '../assets/images/marketplace.jpg'
 
 const Home = () => {
   const navigate = useNavigate(); // Add this hook
@@ -50,7 +52,7 @@ const Home = () => {
 
   const appScreenshots = [
     {
-      src: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+      src: smartplan,
       title: "Smart Planner",
       caption: "AI-powered trip planning made simple",
       accent: "from-blue-500 to-purple-600"
@@ -62,7 +64,7 @@ const Home = () => {
       accent: "from-green-500 to-teal-600"
     },
     {
-      src: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+      src: marketplace,
       title: "Marketplace",
       caption: "Book trusted services and accommodations",
       accent: "from-orange-500 to-red-600"
