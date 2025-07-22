@@ -337,49 +337,70 @@ const Login = () => {
           setLoginData({ emailOrUsername: "", password: "" })
           
           // Get service provider data from response or localStorage
-          const serviceProviderData = response.data || JSON.parse(localStorage.getItem('serviceProvider'))
+          const serviceProviderData = response.data?.serviceProvider || JSON.parse(localStorage.getItem('serviceProvider'))
+          
+          console.log('Service Provider Data:', serviceProviderData) // Debug log
           
           if (serviceProviderData) {
             const { serviceType, isProfileCreated } = serviceProviderData
             
+            console.log('Service Type:', serviceType) // Debug log
+            console.log('Is Profile Created:', isProfileCreated) // Debug log
+            
             // Check if profile is created
             if (!isProfileCreated) {
+              console.log('Profile not created, navigating to create profile...') // Debug log
+              
               // Navigate to profile creation based on service type
               setTimeout(() => {
+                console.log('Executing navigation...') // Debug log
+                
                 switch (serviceType) {
                   case 'HOTEL':
+                    console.log('Navigating to /hotel/create-profile') // Debug log
                     navigate('/hotel/create-profile')
                     break
                   case 'TOUR_GUIDE':
+                    console.log('Navigating to /tour-guide/create-profile') // Debug log
                     navigate('/tour-guide/create-profile')
                     break
                   case 'TRAVEL_AGENCY':
+                    console.log('Navigating to /travel-agency/create-profile') // Debug log
                     navigate('/travel-agency/create-profile')
                     break
                   default:
-                    navigate('/dashboard') // fallback
+                    console.log('Unknown service type, navigating to /login') // Debug log
+                    navigate('/login') // fallback
                     break
                 }
               }, 1500)
             } else {
+              console.log('Profile already created, navigating to dashboard...') // Debug log
+              
               // Navigate to dashboard based on service type
               setTimeout(() => {
                 switch (serviceType) {
                   case 'HOTEL':
+                    console.log('Navigating to /hotel/dashboard') // Debug log
                     navigate('/hotel/dashboard')
                     break
                   case 'TOUR_GUIDE':
+                    console.log('Navigating to /tour-guide/dashboard') // Debug log
                     navigate('/tour-guide/dashboard')
                     break
                   case 'TRAVEL_AGENCY':
+                    console.log('Navigating to /travel-agency/dashboard') // Debug log
                     navigate('/travel-agency/dashboard')
                     break
                   default:
-                    navigate('/dashboard') // fallback
+                    console.log('Unknown service type, navigating to /login') // Debug log
+                    navigate('/login') // fallback
                     break
                 }
               }, 1500)
             }
+          } else {
+            console.log('No service provider data found') // Debug log
           }
         } else {
           setSubmitMessage({ type: 'error', message: response.message })
@@ -391,22 +412,31 @@ const Login = () => {
         }
 
       } else {
-        // SIGNUP LOGIC
-        // Validate all signup fields
+        // SIGNUP LOGIC - Updated to match ServiceProviderSignupRequest DTO exactly
         if (!validateAllSignupFields()) {
           setSubmitMessage({ type: 'error', message: 'Please fix the errors above' })
           setIsLoading(false)
           return
         }
 
-        // Call signup API
-        response = await authService.signup(signupData)
+        // Transform frontend signupData to match ServiceProviderSignupRequest DTO structure exactly
+        const backendSignupData = {
+          username: signupData.businessName || signupData.username, // Map businessName to username (DTO field)
+          email: signupData.email, // Direct mapping
+          password: signupData.password, // Direct mapping
+          serviceType: signupData.serviceType, // Direct mapping (should match ServiceProviderType enum)
+          businessRegistrationNumber: signupData.businessRegNumber || signupData.businessRegistrationNumber, // Map to exact DTO field
+          address: signupData.address, // Direct mapping
+          contactNo: signupData.phone || signupData.contactNo // Map phone to contactNo (exact DTO field)
+          // Note: termsAccepted and privacyAccepted are not sent to backend
+          // confirmPassword is not sent to backend (frontend validation only)
+        }
+
+        response = await authService.signup(backendSignupData)
         
         if (response.success) {
-          // Show success screen for signup with admin approval notice
           setIsCompleted(true)
-          
-          // Clear form data on success
+          // Clear form data on success - keep original frontend structure
           setSignupData({
             businessName: "",
             email: "",
@@ -419,22 +449,34 @@ const Login = () => {
             termsAccepted: false,
             privacyAccepted: false,
           })
-          
-          // Clear any validation errors
           setErrors({})
           
-          // Switch to login form after a delay
           setTimeout(() => {
             setIsCompleted(false)
-            handleFormToggle(true) // Switch to login form
+            handleFormToggle(true)
           }, 5000)
           
         } else {
           setSubmitMessage({ type: 'error', message: response.message })
-          
-          // Handle field-specific errors from backend
           if (response.errors) {
-            setErrors(prev => ({ ...prev, ...response.errors }))
+            // Map backend error field names back to frontend field names
+            const mappedErrors = {}
+            Object.keys(response.errors).forEach(key => {
+              switch(key) {
+                case 'username':
+                  mappedErrors.businessName = response.errors[key]
+                  break
+                case 'businessRegistrationNumber':
+                  mappedErrors.businessRegNumber = response.errors[key]
+                  break
+                case 'contactNo':
+                  mappedErrors.phone = response.errors[key]
+                  break
+                default:
+                  mappedErrors[key] = response.errors[key]
+              }
+            })
+            setErrors(prev => ({ ...prev, ...mappedErrors }))
           }
         }
       }
@@ -447,7 +489,7 @@ const Login = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+}
 
   const handleGoBack = () => {
     navigate(-1)

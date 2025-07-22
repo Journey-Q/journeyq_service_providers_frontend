@@ -47,15 +47,15 @@ export const authService = {
   // Register service provider
   signup: async (signupData) => {
     try {
-      // Map frontend data to backend DTO format
+      // Map frontend data to backend DTO format according to ServiceProviderSignupRequest
       const requestData = {
-        username: signupData.businessName, // Map businessName to username
+        username: signupData.username || signupData.businessName, // Use username directly or map from businessName
         email: signupData.email,
         password: signupData.password,
-        serviceType: signupData.serviceType, // Should be HOTEL, TOUR_GUIDE, or TRAVEL_AGENT
-        businessRegistrationNumber: signupData.businessRegNumber,
+        serviceType: signupData.serviceType, // Should match ServiceProviderType enum
+        businessRegistrationNumber: signupData.businessRegistrationNumber || signupData.businessRegNumber, // Use exact DTO field name
         address: signupData.address,
-        contactNo: signupData.phone
+        contactNo: signupData.contactNo || signupData.phone // Use exact DTO field name
       };
 
       const response = await apiClient.post('/auth/signup', requestData);
