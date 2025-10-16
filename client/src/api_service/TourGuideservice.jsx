@@ -1,5 +1,5 @@
 const TourGuideProfileService = {
-  BASE_URL: 'https://serviceprovidersservice-production.up.railway.app/service/tour-guide-profiles',
+  BASE_URL: 'https://serviceprovidersservice-production-7996.up.railway.app/service/tour-guide-profiles',
 
   getAuthHeaders() {
     const accessToken = localStorage.getItem('accessToken');

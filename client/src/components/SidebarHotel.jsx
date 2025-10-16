@@ -139,9 +139,9 @@ const SidebarHotel = () => {
             <h1 className="text-lg font-semibold text-black leading-tight font-poppins truncate">
               {displayName}
             </h1>
-            <p className="text-xs text-black/80 leading-tight font-poppins truncate">
+            {/* <p className="text-xs text-black/80 leading-tight font-poppins truncate">
               {displayEmail}
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

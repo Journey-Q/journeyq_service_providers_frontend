@@ -1,5 +1,5 @@
 const TravelAgencyProfileService = {
-  BASE_URL: 'https://serviceprovidersservice-production.up.railway.app/service/agency-profiles',
+  BASE_URL: 'https://serviceprovidersservice-production-7996.up.railway.app/service/agency-profiles',
 
   getAuthHeaders() {
     const accessToken = localStorage.getItem('accessToken');
