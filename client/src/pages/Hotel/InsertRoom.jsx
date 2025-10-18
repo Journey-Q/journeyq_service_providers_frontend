@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import RoomService from '../../api_service/RoomService';
 import CloudinaryStorageService from '../../api_service/Cloudinaryservice';
-import { AlertTriangle, Loader2, X } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 
 const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
   const [formData, setFormData] = useState({
@@ -14,8 +14,8 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
     bathrooms: '1',
     amenities: '',
     status: 'available',
-    imageFiles: [], // Changed to array for multiple files
-    imagePreviews: [], // Changed to array for multiple previews
+    imageFile: null,
+    imagePreview: null,
   });
 
   const [error, setError] = useState('');
@@ -31,94 +31,70 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
   };
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
+    const file = e.target.files[0];
     setError('');
 
-    if (files.length > 0) {
+    if (file) {
       try {
-        // Validate all files
-        files.forEach(file => {
-          CloudinaryStorageService.validateFile(file);
-        });
+        CloudinaryStorageService.validateFile(file);
 
-        const newImagePreviews = [];
-        const newImageFiles = [...formData.imageFiles];
-
-        let processedFiles = 0;
-
-        files.forEach(file => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            newImagePreviews.push(e.target.result);
-            newImageFiles.push(file);
-            processedFiles++;
-
-            // When all files are processed, update state
-            if (processedFiles === files.length) {
-              setFormData(prev => ({
-                ...prev,
-                imageFiles: newImageFiles,
-                imagePreviews: [...prev.imagePreviews, ...newImagePreviews]
-              }));
-            }
-          };
-          reader.onerror = () => {
-            throw new Error('Failed to read file');
-          };
-          reader.readAsDataURL(file);
-        });
-
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setFormData(prev => ({
+            ...prev,
+            imageFile: file,
+            imagePreview: e.target.result
+          }));
+        };
+        reader.onerror = () => {
+          throw new Error('Failed to read file');
+        };
+        reader.readAsDataURL(file);
       } catch (uploadError) {
         setError(uploadError.message);
+        setFormData(prev => ({
+          ...prev,
+          imageFile: null,
+          imagePreview: null,
+        }));
         e.target.value = '';
       }
     }
   };
 
-  const handleRemoveImage = (index) => {
+  const handleRemoveImage = () => {
     setFormData(prev => ({
       ...prev,
-      imageFiles: prev.imageFiles.filter((_, i) => i !== index),
-      imagePreviews: prev.imagePreviews.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleRemoveAllImages = () => {
-    setFormData(prev => ({
-      ...prev,
-      imageFiles: [],
-      imagePreviews: []
+      imageFile: null,
+      imagePreview: null
     }));
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) fileInput.value = '';
   };
 
-  // Updated to handle multiple image uploads
+  // ✅ CORRECTED: Simplified to match HotelProfileCreator pattern exactly
   const prepareRoomDataForAPI = async (serviceProviderId) => {
-    let roomImageUrls = [];
+    let roomImageUrl = '';
 
-    if (formData.imageFiles.length > 0) {
+    if (formData.imageFile) {
       try {
-        setUploadProgress(`Uploading ${formData.imageFiles.length} image(s)...`);
+        setUploadProgress('Validating image...');
         
-        // Upload all images
-        const uploadPromises = formData.imageFiles.map((file, index) => {
-          const fileName = CloudinaryStorageService.generateFileName(
-            file.name,
-            serviceProviderId,
-            index // Add index to make filenames unique
-          );
-          
-          return CloudinaryStorageService.uploadImage(file, fileName);
-        });
-
-        roomImageUrls = await Promise.all(uploadPromises);
+        const fileName = CloudinaryStorageService.generateFileName(
+          formData.imageFile.name,
+          serviceProviderId
+        );
         
-        console.log('All images uploaded successfully:', roomImageUrls);
-        setUploadProgress('All images uploaded successfully!');
+        setUploadProgress('Uploading image to storage...');
+        
+        // ✅ Direct upload without additional validation (exactly like reference)
+        roomImageUrl = await CloudinaryStorageService.uploadImage(formData.imageFile, fileName);
+        
+        console.log('Image uploaded successfully:', roomImageUrl);
+        setUploadProgress('Image uploaded successfully!');
         
       } catch (uploadError) {
-        console.error('Error uploading images to Cloudinary:', uploadError);
+        console.error('Error uploading image to Cloudinary:', uploadError);
         setUploadProgress('');
         throw new Error(`Image upload failed: ${uploadError.message}`);
       }
@@ -130,7 +106,7 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       .map((a) => a.trim())
       .filter((a) => a);
 
-    // Prepare API data matching the DTO structure
+    // ✅ CORRECTED: Prepare API data matching the DTO structure exactly
     const apiData = {
       serviceProviderId: parseInt(serviceProviderId),
       name: formData.name.trim(),
@@ -142,7 +118,7 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       bathrooms: parseInt(formData.bathrooms),
       amenities: amenitiesArray,
       status: formData.status.toUpperCase(), // Convert to uppercase to match enum
-      images: roomImageUrls, // Now contains multiple image URLs
+      images: roomImageUrl ? [roomImageUrl] : [], // Ensure it's always an array
     };
 
     console.log('API Data to be sent:', apiData);
@@ -154,7 +130,7 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
     setError('');
     setUploadProgress('');
 
-    // Get service provider ID
+    // Get service provider ID - same pattern as reference
     const serviceProvider = localStorage.getItem('serviceProvider');
     let serviceProviderId;
 
@@ -189,14 +165,8 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       return;
     }
 
-    if (formData.imageFiles.length === 0) {
-      setError('Please upload at least one image for the room.');
-      return;
-    }
-
-    // Optional: Limit number of images
-    if (formData.imageFiles.length > 10) {
-      setError('Maximum 10 images allowed.');
+    if (!formData.imageFile) {
+      setError('Please upload an image for the room.');
       return;
     }
 
@@ -243,8 +213,8 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       bathrooms: '1',
       amenities: '',
       status: 'available',
-      imageFiles: [],
-      imagePreviews: [],
+      imageFile: null,
+      imagePreview: null,
     });
     setError('');
     setUploadProgress('');
@@ -261,7 +231,7 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Add New Room</h2>
@@ -458,24 +428,11 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
               </select>
             </div>
 
-            {/* Room Image Upload - Updated for multiple images */}
+            {/* Room Image Upload */}
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Room Images *
-                </label>
-                {formData.imagePreviews.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleRemoveAllImages}
-                    className="text-sm text-red-600 hover:text-red-800 font-medium"
-                    disabled={isSubmitting}
-                  >
-                    Remove All
-                  </button>
-                )}
-              </div>
-              
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Room Image *
+              </label>
               <div className="space-y-4">
                 <input
                   type="file"
@@ -483,42 +440,26 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
                   onChange={handleImageUpload}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent transition-colors"
                   disabled={isSubmitting}
-                  multiple // Allow multiple file selection
-                  required={formData.imagePreviews.length === 0}
+                  required
                 />
                 <p className="text-xs text-gray-500">
-                  Maximum file size: 10MB per image. Accepted formats: JPEG, PNG, WebP. 
-                  You can select multiple images. {formData.imagePreviews.length}/10 images selected.
+                  Maximum file size: 10MB. Accepted formats: JPEG, PNG, WebP
                 </p>
-                
-                {/* Image Previews Grid */}
-                {formData.imagePreviews.length > 0 && (
-                  <div className="mt-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                      {formData.imagePreviews.map((preview, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={preview}
-                            alt={`Room preview ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-lg border shadow-sm"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-                            disabled={isSubmitting}
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 px-2 rounded-b-lg">
-                            {index + 1}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2">
-                      {formData.imagePreviews.length} image(s) selected
-                    </p>
+                {formData.imagePreview && (
+                  <div className="mt-2 relative w-32 h-32">
+                    <img
+                      src={formData.imagePreview}
+                      alt="Room preview"
+                      className="w-full h-full object-cover rounded-lg border shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                      disabled={isSubmitting}
+                    >
+                      ×
+                    </button>
                   </div>
                 )}
               </div>
