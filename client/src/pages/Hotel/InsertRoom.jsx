@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import RoomService from '../../api_service/RoomService';
 import CloudinaryStorageService from '../../api_service/Cloudinaryservice';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2, X } from 'lucide-react';
 
 const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
   const [formData, setFormData] = useState({
@@ -14,8 +14,8 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
     bathrooms: '1',
     amenities: '',
     status: 'available',
-    imageFile: null,
-    imagePreview: null,
+    imageFiles: [],
+    imagePreviews: [],
   });
 
   const [error, setError] = useState('');
@@ -31,70 +31,90 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
   };
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+    const files = Array.from(e.target.files);
     setError('');
 
-    if (file) {
-      try {
-        CloudinaryStorageService.validateFile(file);
+    if (files.length === 0) return;
 
+    try {
+      // Validate all files
+      files.forEach(file => {
+        CloudinaryStorageService.validateFile(file);
+      });
+
+      // Create previews for all files
+      const newPreviews = [];
+      const newFiles = [];
+
+      files.forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = (e) => {
-          setFormData(prev => ({
-            ...prev,
-            imageFile: file,
-            imagePreview: e.target.result
-          }));
+          newPreviews.push(e.target.result);
+          newFiles.push(file);
+          
+          // When all files are processed, update state
+          if (newPreviews.length === files.length) {
+            setFormData(prev => ({
+              ...prev,
+              imageFiles: [...prev.imageFiles, ...newFiles],
+              imagePreviews: [...prev.imagePreviews, ...newPreviews]
+            }));
+          }
         };
         reader.onerror = () => {
           throw new Error('Failed to read file');
         };
         reader.readAsDataURL(file);
-      } catch (uploadError) {
-        setError(uploadError.message);
-        setFormData(prev => ({
-          ...prev,
-          imageFile: null,
-          imagePreview: null,
-        }));
-        e.target.value = '';
-      }
+      });
+
+    } catch (uploadError) {
+      setError(uploadError.message);
+      e.target.value = '';
     }
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = (index) => {
     setFormData(prev => ({
       ...prev,
-      imageFile: null,
-      imagePreview: null
+      imageFiles: prev.imageFiles.filter((_, i) => i !== index),
+      imagePreviews: prev.imagePreviews.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleRemoveAllImages = () => {
+    setFormData(prev => ({
+      ...prev,
+      imageFiles: [],
+      imagePreviews: []
     }));
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) fileInput.value = '';
   };
 
-  // ✅ CORRECTED: Simplified to match HotelProfileCreator pattern exactly
   const prepareRoomDataForAPI = async (serviceProviderId) => {
-    let roomImageUrl = '';
+    let roomImageUrls = [];
 
-    if (formData.imageFile) {
+    if (formData.imageFiles.length > 0) {
       try {
-        setUploadProgress('Validating image...');
+        setUploadProgress(`Uploading ${formData.imageFiles.length} image(s)...`);
         
-        const fileName = CloudinaryStorageService.generateFileName(
-          formData.imageFile.name,
-          serviceProviderId
-        );
+        // Upload all images
+        const uploadPromises = formData.imageFiles.map((file, index) => {
+          const fileName = CloudinaryStorageService.generateFileName(
+            file.name,
+            serviceProviderId,
+            index
+          );
+          return CloudinaryStorageService.uploadImage(file, fileName);
+        });
+
+        roomImageUrls = await Promise.all(uploadPromises);
         
-        setUploadProgress('Uploading image to storage...');
-        
-        // ✅ Direct upload without additional validation (exactly like reference)
-        roomImageUrl = await CloudinaryStorageService.uploadImage(formData.imageFile, fileName);
-        
-        console.log('Image uploaded successfully:', roomImageUrl);
-        setUploadProgress('Image uploaded successfully!');
+        console.log('All images uploaded successfully:', roomImageUrls);
+        setUploadProgress(`${roomImageUrls.length} image(s) uploaded successfully!`);
         
       } catch (uploadError) {
-        console.error('Error uploading image to Cloudinary:', uploadError);
+        console.error('Error uploading images to Cloudinary:', uploadError);
         setUploadProgress('');
         throw new Error(`Image upload failed: ${uploadError.message}`);
       }
@@ -106,7 +126,7 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       .map((a) => a.trim())
       .filter((a) => a);
 
-    // ✅ CORRECTED: Prepare API data matching the DTO structure exactly
+    // Prepare API data matching the DTO structure exactly
     const apiData = {
       serviceProviderId: parseInt(serviceProviderId),
       name: formData.name.trim(),
@@ -118,7 +138,7 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       bathrooms: parseInt(formData.bathrooms),
       amenities: amenitiesArray,
       status: formData.status.toUpperCase(), // Convert to uppercase to match enum
-      images: roomImageUrl ? [roomImageUrl] : [], // Ensure it's always an array
+      images: roomImageUrls, // Now contains multiple image URLs
     };
 
     console.log('API Data to be sent:', apiData);
@@ -130,7 +150,7 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
     setError('');
     setUploadProgress('');
 
-    // Get service provider ID - same pattern as reference
+    // Get service provider ID
     const serviceProvider = localStorage.getItem('serviceProvider');
     let serviceProviderId;
 
@@ -165,8 +185,8 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       return;
     }
 
-    if (!formData.imageFile) {
-      setError('Please upload an image for the room.');
+    if (formData.imageFiles.length === 0) {
+      setError('Please upload at least one image for the room.');
       return;
     }
 
@@ -213,8 +233,8 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
       bathrooms: '1',
       amenities: '',
       status: 'available',
-      imageFile: null,
-      imagePreview: null,
+      imageFiles: [],
+      imagePreviews: [],
     });
     setError('');
     setUploadProgress('');
@@ -428,10 +448,10 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
               </select>
             </div>
 
-            {/* Room Image Upload */}
+            {/* Room Images Upload - UPDATED FOR MULTIPLE IMAGES */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Room Image *
+                Room Images * ({formData.imageFiles.length} selected)
               </label>
               <div className="space-y-4">
                 <input
@@ -440,26 +460,52 @@ const InsertRoom = ({ showModal, setShowModal, onRoomAdded }) => {
                   onChange={handleImageUpload}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2953A6] focus:border-transparent transition-colors"
                   disabled={isSubmitting}
-                  required
+                  multiple // Enable multiple file selection
+                  required={formData.imageFiles.length === 0}
                 />
                 <p className="text-xs text-gray-500">
-                  Maximum file size: 10MB. Accepted formats: JPEG, PNG, WebP
+                  Maximum file size: 10MB per image. Accepted formats: JPEG, PNG, WebP. You can select multiple images.
                 </p>
-                {formData.imagePreview && (
-                  <div className="mt-2 relative w-32 h-32">
-                    <img
-                      src={formData.imagePreview}
-                      alt="Room preview"
-                      className="w-full h-full object-cover rounded-lg border shadow-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                      disabled={isSubmitting}
-                    >
-                      ×
-                    </button>
+                
+                {/* Image Previews Grid */}
+                {formData.imagePreviews.length > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <p className="text-sm font-medium text-gray-700">
+                        Selected Images ({formData.imagePreviews.length})
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleRemoveAllImages}
+                        className="text-sm text-red-600 hover:text-red-800 flex items-center gap-1"
+                        disabled={isSubmitting}
+                      >
+                        <X className="w-4 h-4" />
+                        Remove All
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {formData.imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={preview}
+                            alt={`Room preview ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border shadow-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                            disabled={isSubmitting}
+                          >
+                            ×
+                          </button>
+                          <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1 rounded">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

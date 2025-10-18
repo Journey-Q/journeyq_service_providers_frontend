@@ -59,13 +59,33 @@ const RoomService = {
 
   async editRoom(id, roomData){
     try{
-      const response = await fetch(`${this.BASE_URL}/edit/${id}`,{
+      const response = await fetch(`${this.BASE_URL}/${id}`,{
         method: 'PUT',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(roomData)
       });
+
+      const responseData = await this.handleResponse(response);
+      console.log('Room edited successfully:', responseData);
     }catch(error){
       console.error('Error editing room:', error);
+      throw error;
+    }
+  },
+
+  //delete room
+  async deleteRoom(id){
+    try{
+      const response = await fetch(`${this.BASE_URL}/${id}`,{
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
+      });
+
+      const responseData = await this.handleResponse(response);
+      console.log('Room deleted successfully:', responseData);
+      return responseData;
+    }catch(error){
+      console.error('Error deleting room:', error);
       throw error;
     }
   },

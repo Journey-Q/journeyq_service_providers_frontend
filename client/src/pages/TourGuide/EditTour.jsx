@@ -1,6 +1,6 @@
 import React from 'react';
 
-const InsertTour = ({ showModal, setShowModal, formData, setFormData, imagePreview, handleImageUpload, handleSubmit, resetForm }) => {
+const EditTour = ({ showModal, setShowModal, formData, setFormData, imagePreview, handleImageUpload, handleSubmit, resetForm }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -26,7 +26,7 @@ const InsertTour = ({ showModal, setShowModal, formData, setFormData, imagePrevi
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Add New Tour</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Edit Tour</h2>
             <button 
               onClick={() => {
                 setShowModal(false);
@@ -278,7 +278,7 @@ const InsertTour = ({ showModal, setShowModal, formData, setFormData, imagePrevi
                 type="submit"
                 className="flex-1 bg-[#2953A6] hover:bg-[#1F74BF] text-white py-2 px-4 rounded-lg transition-colors"
               >
-                Add Tour
+                Update Tour
               </button>
               <button
                 type="button"
@@ -298,4 +298,4 @@ const InsertTour = ({ showModal, setShowModal, formData, setFormData, imagePrevi
   );
 };
 
-export default InsertTour;
+export default EditTour;

@@ -391,25 +391,26 @@ const Settings = () => {
                   </div>
 
                   {/* Amenities */}
+                  {/* Amenities */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Amenities
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {availableAmenities.map((amenity) => (
+                      {availableAmenities.map((amenity, index) => (
                         <div
-                          key={amenity}
+                          key={`amenity-edit-${index}`} // Use index to ensure unique keys
                           className="flex items-center space-x-2"
                         >
                           <input
                             type="checkbox"
-                            id={amenity}
+                            id={`amenity-${index}`} // Unique ID for each checkbox
                             checked={profileData.amenities?.includes(amenity)}
                             onChange={() => handleAmenityToggle(amenity)}
                             className="w-4 h-4 text-[#0088cc] rounded focus:ring-[#0088cc]"
                           />
                           <label
-                            htmlFor={amenity}
+                            htmlFor={`amenity-${index}`} // Match the unique ID
                             className="text-sm text-gray-700 flex items-center"
                           >
                             {getAmenityIcon(amenity)} {amenity}
@@ -525,7 +526,7 @@ const Settings = () => {
                         <div className="flex flex-wrap gap-3">
                           {profileData.amenities?.map((amenity, index) => (
                             <span
-                              key={index}
+                              key={`amenity-display-${index}`} // Use index to ensure unique keys
                               className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm"
                             >
                               {getAmenityIcon(amenity)} {amenity}
