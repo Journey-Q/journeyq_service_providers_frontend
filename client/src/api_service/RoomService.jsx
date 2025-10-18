@@ -2,7 +2,7 @@
 
 const RoomService = {
   //base api url
-  BASE_URL: 'https://serviceprovidersservice-production-7996.up.railway.app/service/rooms',
+  BASE_URL: 'https://serviceprovidersservice-production-8f10.up.railway.app/service/rooms',
 
   // Helper method to get auth headers
   getAuthHeaders() {

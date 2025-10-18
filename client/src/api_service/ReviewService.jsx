@@ -1,7 +1,7 @@
 //review service
 const ReviewService = {
   BASE_URL:
-    "https://serviceprovidersservice-production-7996.up.railway.app/service/reviews",
+    "https://serviceprovidersservice-production-8f10.up.railway.app/service/reviews",
 
   // Helper method to get auth headers
   getAuthHeaders() {

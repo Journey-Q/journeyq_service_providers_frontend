@@ -1,7 +1,7 @@
 
 const HotelProfileService = {
   // Base API URL
-  BASE_URL: 'https://serviceprovidersservice-production-7996.up.railway.app/service/hotel-profiles',
+  BASE_URL: 'https://serviceprovidersservice-production-8f10.up.railway.app/service/hotel-profiles',
 
   // Helper method to get auth headers
   getAuthHeaders() {

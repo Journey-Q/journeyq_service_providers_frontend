@@ -1,7 +1,7 @@
 const HotelBookingService = {
   //base api url
   BASE_URL:
-    "https://serviceprovidersservice-production-7996.up.railway.app/service/hotel-profiles",
+    "https://serviceprovidersservice-production-8f10.up.railway.app/service/hotel-profiles",
 
   getAuthHeaders() {
     const accessToken = localStorage.getItem("accessToken");
