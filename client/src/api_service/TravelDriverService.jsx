@@ -74,6 +74,38 @@ const TravelDriverService = {
       throw error;
     }
   },
+
+  //edit driver
+  async editDriver(id, driverData) {
+    try {
+      const response = await fetch(`${this.BASE_URL}/${id}`, {
+        method: "PUT",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(driverData),
+      });
+      const responseData = await this.handleResponse(response);
+      console.log("Driver edited successfully:", responseData);
+    } catch (error) {
+      console.error("Error editing driver:", error);
+      throw error;
+    }
+  },
+
+  // Delete driver
+  async deleteDriver(id) {
+    try {
+      const response = await fetch(`${this.BASE_URL}/${id}`, {
+        method: "DELETE",
+        headers: this.getAuthHeaders(),
+      });
+      const responseData = await this.handleResponse(response);
+      console.log("Driver deleted successfully:", responseData);
+      return responseData;
+    } catch (error) {
+      console.error("Error deleting driver:", error);
+      throw error;
+    }
+  },
 };
 
 export default TravelDriverService;
