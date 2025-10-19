@@ -194,8 +194,7 @@ const EditRoom = ({ editModal, setEditModal, currentRoom, setCurrentRoom, onRoom
       // Combine existing images (not deleted) with new images
       const finalImages = [...existingImages, ...newImageUrls];
 
-      // Prepare the data for API update
-      const bedDescription = `${formData.numberOfBeds} ${formData.bedType} bed${formData.numberOfBeds > 1 ? 's' : ''}`;
+      // Prepare the data for API update - FIXED VERSION
       const amenitiesArray = formData.amenities.split(',').map(amenity => amenity.trim()).filter(amenity => amenity);
       
       const updatedRoomData = {
@@ -203,22 +202,28 @@ const EditRoom = ({ editModal, setEditModal, currentRoom, setCurrentRoom, onRoom
         price: parseFloat(formData.price),
         maxOccupancy: parseInt(formData.maxOccupancy),
         area: parseInt(formData.area),
-        beds: bedDescription,
+        bedType: formData.bedType,  // Send as separate field
+        numberOfBeds: parseInt(formData.numberOfBeds),  // Send as separate field
         bathrooms: parseInt(formData.bathrooms),
         amenities: amenitiesArray,
         status: formData.status,
-        images: finalImages
+        image: finalImages.length > 0 ? finalImages[0] : ''  // Send as 'image' (singular), first image
       };
+
+      console.log('Update data being sent:', updatedRoomData);
 
       setEditUploadProgress('Updating room...');
       
       // Call API to update room
-      await RoomService.editRoom(currentRoom.id, updatedRoomData);
+      const response = await RoomService.editRoom(currentRoom.id, updatedRoomData);
       
-      // Create updated room object
+      // Create updated room object with beds formatted correctly
+      const bedDescription = `${formData.numberOfBeds} ${formData.bedType} bed${formData.numberOfBeds > 1 ? 's' : ''}`;
       const updatedRoom = {
         ...currentRoom,
         ...updatedRoomData,
+        beds: bedDescription,  // Add the formatted beds string for display
+        images: finalImages,   // Keep full images array for local state
         image: finalImages.length > 0 ? finalImages[0] : currentRoom.image
       };
 

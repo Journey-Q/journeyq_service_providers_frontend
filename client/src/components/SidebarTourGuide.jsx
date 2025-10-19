@@ -106,12 +106,12 @@ const SidebarTourGuide = () => {
     { path: '/tour-guide/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
     { path: '/tour-guide/tours', icon: FiMap, label: 'Tour Packages' },
     { path: '/tour-guide/promotions', icon: FiTag, label: 'Promotions' },
-    {
-      path: '/tour-guide/chat',
-      icon: FiMessageSquare,
-      label: 'Messages',
-      badge: 3
-    },
+    // {
+    //   path: '/tour-guide/chat',
+    //   icon: FiMessageSquare,
+    //   label: 'Messages',
+    //   badge: 3
+    // },
     { path: '/tour-guide/reviews', icon: FiStar, label: 'Reviews & Ratings' },
     { path: '/tour-guide/settings', icon: FiSettings, label: 'Settings' },
   ];

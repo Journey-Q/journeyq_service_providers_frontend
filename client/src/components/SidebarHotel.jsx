@@ -105,12 +105,12 @@ const SidebarHotel = () => {
     { path: '/hotel/promotions', icon: FiTag, label: 'Promotions' },
     { path: '/hotel/payment-history', icon: FiDollarSign, label: 'Payment History' },
     { path: '/hotel/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
-    {
-      path: '/hotel/chat',
-      icon: FiMessageSquare,
-      label: 'Messages',
-      badge: 3
-    },
+    // {
+    //   path: '/hotel/chat',
+    //   icon: FiMessageSquare,
+    //   label: 'Messages',
+    //   badge: 3
+    // },
     { path: '/hotel/reviews', icon: FiStar, label: 'Reviews & Ratings' },
     { path: '/hotel/settings', icon: FiSettings, label: 'Settings' },
   ];

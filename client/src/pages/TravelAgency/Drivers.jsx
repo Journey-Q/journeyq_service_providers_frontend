@@ -1,83 +1,142 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/SidebarTravelAgency';
 import { FaUser, FaPhone, FaLanguage, FaStar, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import InsertDriver from './InsertDriver';
+import EditDriver from './EditDriver';
+
+// Backend service
+const TravelDriverService = {
+  BASE_URL: 'https://serviceprovidersservice-production-8f10.up.railway.app/service/drivers',
+
+  // Helper method to get auth headers
+  getAuthHeaders() {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      throw new Error("No access token found. Please login again.");
+    }
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    };
+  },
+
+  // Helper method to handle API responses
+  async handleResponse(response) {
+    if (!response.ok) {
+      let errorMessage = "An error occurred";
+      try {
+        const errorData = await response.json();
+        errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `HTTP ${response.status}: ${response.statusText}`;
+      } catch (e) {
+        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    // Handle different response types
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return await response.json();
+    } else {
+      return await response.text();
+    }
+  },
+
+  //get all drivers by service provider id
+  async getDriversByServiceProviderId(serviceProviderId) {
+    try {
+      const response = await fetch(
+        `${this.BASE_URL}/service-provider/${serviceProviderId}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        }
+      );
+
+      const responseData = await this.handleResponse(response);
+      console.log("Drivers fetched successfully:", responseData);
+      return responseData;
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+      throw error;
+    }
+  },
+};
 
 const Drivers = () => {
   const [showModal, setShowModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [currentDriver, setCurrentDriver] = useState(null);
-  
-  const [drivers, setDrivers] = useState([
-    {
-      id: 1,
-      name: "Ravi Perera",
-      experience: 5,
-      languages: ["Sinhala", "English"],
-      contactNumber: "+94 77 123 4567",
-      profilePhoto: "https://randomuser.me/api/portraits/men/32.jpg",
-      rating: 4.5,
-      licenseNumber: "DL-12345678",
-      status: "available"
-    },
-    {
-      id: 2,
-      name: "Kamal Silva",
-      experience: 8,
-      languages: ["Sinhala", "English", "Tamil"],
-      contactNumber: "+94 76 234 5678",
-      profilePhoto: "https://randomuser.me/api/portraits/men/44.jpg",
-      rating: 4.8,
-      licenseNumber: "DL-23456789",
-      status: "available"
-    },
-    {
-      id: 3,
-      name: "Nimal Fernando",
-      experience: 3,
-      languages: ["Sinhala", "English"],
-      contactNumber: "+94 71 345 6789",
-      profilePhoto: "https://randomuser.me/api/portraits/men/67.jpg",
-      rating: 4.2,
-      licenseNumber: "DL-34567890",
-      status: "on leave"
-    },
-    {
-      id: 4,
-      name: "Sunil Bandara",
-      experience: 10,
-      languages: ["Sinhala", "English", "Hindi"],
-      contactNumber: "+94 78 456 7890",
-      profilePhoto: "https://randomuser.me/api/portraits/men/89.jpg",
-      rating: 4.9,
-      licenseNumber: "DL-45678901",
-      status: "available"
-    },
-    {
-      id: 5,
-      name: "Anil Jayasuriya",
-      experience: 2,
-      languages: ["Sinhala"],
-      contactNumber: "+94 75 567 8901",
-      profilePhoto: "https://randomuser.me/api/portraits/men/12.jpg",
-      rating: 3.9,
-      licenseNumber: "DL-56789012",
-      status: "training"
-    }
-  ]);
+  const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    experience: '',
-    languages: '',
-    contactNumber: '',
-    profilePhoto: '',
-    licenseNumber: '',
-    status: 'available'
-  });
-  
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  // Map backend status to frontend status
+  const mapBackendStatus = (backendStatus) => {
+    const statusMap = {
+      'AVAILABLE': 'available',
+      'ON_LEAVE': 'on leave',
+      'UNAVAILABLE': 'unavailable'
+    };
+    return statusMap[backendStatus] || 'available';
+  };
+
+  // Map frontend status to backend status
+  const mapFrontendStatus = (frontendStatus) => {
+    const statusMap = {
+      'available': 'AVAILABLE',
+      'on leave': 'ON_LEAVE',
+      'unavailable': 'UNAVAILABLE'
+    };
+    return statusMap[frontendStatus] || 'AVAILABLE';
+  };
+
+  // Transform backend data to frontend format
+  const transformDriverData = (backendDriver) => {
+    return {
+      id: backendDriver.id,
+      name: backendDriver.name,
+      experience: backendDriver.experience,
+      languages: Array.isArray(backendDriver.languages) ? backendDriver.languages : [],
+      contactNumber: backendDriver.contactNumber,
+      profilePhoto: backendDriver.profilePhoto || "https://randomuser.me/api/portraits/men/1.jpg",
+      rating: backendDriver.rating || 0,
+      licenseNumber: backendDriver.licenseNumber,
+      status: mapBackendStatus(backendDriver.status),
+      serviceProviderId: backendDriver.serviceProviderId
+    };
+  };
+
+  // Fetch drivers from backend
+  const fetchDrivers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Replace with actual service provider ID from your context/auth
+      const serviceProviderId = 34; // You might want to get this from context or auth
+      
+      const backendDrivers = await TravelDriverService.getDriversByServiceProviderId(serviceProviderId);
+      
+      // Transform backend data to frontend format
+      const transformedDrivers = backendDrivers.map(transformDriverData);
+      setDrivers(transformedDrivers);
+      
+    } catch (err) {
+      console.error('Error fetching drivers:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
 
   const statusColors = {
     available: "bg-green-100 text-green-800",
@@ -93,98 +152,9 @@ const Drivers = () => {
     unavailable: "Unavailable"
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang);
-    
-    const newDriver = {
-      id: drivers.length + 1,
-      name: formData.name,
-      experience: parseInt(formData.experience),
-      languages: languagesArray,
-      contactNumber: formData.contactNumber,
-      profilePhoto: imagePreview || "https://randomuser.me/api/portraits/men/1.jpg",
-      licenseNumber: formData.licenseNumber,
-      status: formData.status,
-      rating: 0 // New drivers start with 0 rating
-    };
-
-    setDrivers(prev => [...prev, newDriver]);
-    setShowModal(false);
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      experience: '',
-      languages: '',
-      contactNumber: '',
-      profilePhoto: '',
-      licenseNumber: '',
-      status: 'available'
-    });
-    setImageFile(null);
-    setImagePreview('');
-  };
-
   const handleEdit = (driver) => {
     setCurrentDriver(driver);
-    setFormData({
-      name: driver.name,
-      experience: driver.experience.toString(),
-      languages: driver.languages.join(', '),
-      contactNumber: driver.contactNumber,
-      profilePhoto: driver.profilePhoto,
-      licenseNumber: driver.licenseNumber,
-      status: driver.status
-    });
-    setImagePreview(driver.profilePhoto);
-    setImageFile(null);
     setEditModal(true);
-  };
-
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    
-    const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang);
-    
-    const updatedDriver = {
-      ...currentDriver,
-      name: formData.name,
-      experience: parseInt(formData.experience),
-      languages: languagesArray,
-      contactNumber: formData.contactNumber,
-      profilePhoto: imagePreview || currentDriver.profilePhoto,
-      licenseNumber: formData.licenseNumber,
-      status: formData.status
-    };
-
-    setDrivers(prev => prev.map(driver => driver.id === currentDriver.id ? updatedDriver : driver));
-    setEditModal(false);
-    setCurrentDriver(null);
-    resetForm();
   };
 
   const handleDeleteClick = (driver) => {
@@ -218,6 +188,45 @@ const Drivers = () => {
     
     return stars;
   };
+
+  // Refresh drivers after insert/edit operations
+  const handleDriverUpdate = () => {
+    fetchDrivers();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <main className="flex-1 p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading drivers...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <main className="flex-1 p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-600 text-lg mb-4">Error loading drivers</div>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={fetchDrivers}
+              className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -266,14 +275,13 @@ const Drivers = () => {
             </div>
 
             {/* Add Driver Button */}
-            <div className="w-full md:w-auto flex items-end">
-              <button 
-                onClick={() => setShowModal(true)}
-                className="w-full bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
-              >
-                <FaPlus /> Add Driver
-              </button>
-            </div>
+            <InsertDriver 
+              showModal={showModal}
+              setShowModal={setShowModal}
+              drivers={drivers}
+              setDrivers={setDrivers}
+              onDriverUpdate={handleDriverUpdate}
+            />
           </div>
         </div>
 
@@ -375,302 +383,16 @@ const Drivers = () => {
           </div>
         </div>
 
-        {/* Add Driver Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Add New Driver</h2>
-                  <button 
-                    onClick={() => setShowModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Driver Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name*</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                        placeholder="e.g., Ravi Perera"
-                      />
-                    </div>
-
-                    {/* Experience */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Experience (years)*</label>
-                      <input
-                        type="number"
-                        name="experience"
-                        value={formData.experience}
-                        onChange={handleInputChange}
-                        required
-                        min="0"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                        placeholder="e.g., 5"
-                      />
-                    </div>
-
-                    {/* Languages */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Languages*</label>
-                      <input
-                        type="text"
-                        name="languages"
-                        value={formData.languages}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                        placeholder="Comma separated (e.g., Sinhala, English, Tamil)"
-                      />
-                    </div>
-
-                    {/* Contact Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Contact Number*</label>
-                      <input
-                        type="tel"
-                        name="contactNumber"
-                        value={formData.contactNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                        placeholder="e.g., +94 77 123 4567"
-                      />
-                    </div>
-
-                    {/* License Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">License Number*</label>
-                      <input
-                        type="text"
-                        name="licenseNumber"
-                        value={formData.licenseNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                        placeholder="e.g., DL-12345678"
-                      />
-                    </div>
-
-                    {/* Status */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Status*</label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      >
-                        <option value="available">Available</option>
-                        <option value="on leave">On Leave</option>
-                        <option value="training">In Training</option>
-                        <option value="unavailable">Unavailable</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Profile Photo */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Profile Photo</label>
-                    <div className="space-y-4">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      />
-                      {imagePreview && (
-                        <div className="mt-2">
-                          <img 
-                            src={imagePreview} 
-                            alt="Preview" 
-                            className="w-32 h-32 object-cover rounded-lg border"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Form Buttons */}
-                  <div className="flex space-x-4 pt-4">
-                    <button
-                      type="submit"
-                      className="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 px-4 rounded-lg transition-colors"
-                    >
-                      Add Driver
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowModal(false)}
-                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Edit Driver Modal */}
-        {editModal && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Edit Driver</h2>
-                  <button 
-                    onClick={() => setEditModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <form onSubmit={handleEditSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Driver Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name*</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    {/* Experience */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Experience (years)*</label>
-                      <input
-                        type="number"
-                        name="experience"
-                        value={formData.experience}
-                        onChange={handleInputChange}
-                        required
-                        min="0"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    {/* Languages */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Languages*</label>
-                      <input
-                        type="text"
-                        name="languages"
-                        value={formData.languages}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    {/* Contact Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Contact Number*</label>
-                      <input
-                        type="tel"
-                        name="contactNumber"
-                        value={formData.contactNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    {/* License Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">License Number*</label>
-                      <input
-                        type="text"
-                        name="licenseNumber"
-                        value={formData.licenseNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    {/* Status */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Status*</label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      >
-                        <option value="available">Available</option>
-                        <option value="on leave">On Leave</option>
-                        <option value="training">In Training</option>
-                        <option value="unavailable">Unavailable</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Profile Photo */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Profile Photo</label>
-                    <div className="space-y-4">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                      />
-                      {imagePreview && (
-                        <div className="mt-2">
-                          <img 
-                            src={imagePreview} 
-                            alt="Preview" 
-                            className="w-32 h-32 object-cover rounded-lg border"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Form Buttons */}
-                  <div className="flex space-x-4 pt-4">
-                    <button
-                      type="submit"
-                      className="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 px-4 rounded-lg transition-colors"
-                    >
-                      Update Driver
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditModal(false)}
-                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditDriver 
+          editModal={editModal}
+          setEditModal={setEditModal}
+          currentDriver={currentDriver}
+          setCurrentDriver={setCurrentDriver}
+          drivers={drivers}
+          setDrivers={setDrivers}
+          onDriverUpdate={handleDriverUpdate}
+        />
 
         {/* Delete Confirmation Modal */}
         {deleteModal && (

@@ -107,12 +107,12 @@ const SidebarTravelAgency = () => {
     { path: '/travel-agency/vehicles', icon: FiTruck, label: 'Vehicles' },
     { path: '/travel-agency/drivers', icon: FiUsers, label: 'Drivers' },
     { path: '/travel-agency/promotions', icon: FiTag, label: 'Promotions' },
-    {
-      path: '/travel-agency/chat',
-      icon: FiMessageSquare,
-      label: 'Messages',
-      badge: 3
-    },
+    // {
+    //   path: '/travel-agency/chat',
+    //   icon: FiMessageSquare,
+    //   label: 'Messages',
+    //   badge: 3
+    // },
     { path: '/travel-agency/reviews', icon: FiStar, label: 'Reviews & Ratings' },
     { path: '/travel-agency/settings', icon: FiSettings, label: 'Settings' },
   ];

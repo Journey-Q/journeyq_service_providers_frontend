@@ -3,6 +3,7 @@ import Sidebar from '../../components/SidebarHotel';
 import RoomService from '../../api_service/RoomService';
 import InsertRoom from './InsertRoom';
 import EditRoom from './EditRoom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const RoomServicePage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -13,6 +14,9 @@ const RoomServicePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  
+  // Track current image index for each room
+  const [roomImageIndices, setRoomImageIndices] = useState({});
   
   // Get service provider ID from localStorage or context
   const serviceProvider = localStorage.getItem('serviceProvider');
@@ -86,6 +90,13 @@ const RoomServicePage = () => {
 
       console.log('Transformed rooms:', transformedRooms);
       setRooms(transformedRooms);
+      
+      // Initialize image indices for all rooms
+      const indices = {};
+      transformedRooms.forEach(room => {
+        indices[room.id] = 0;
+      });
+      setRoomImageIndices(indices);
     } catch (err) {
       console.error('Error fetching rooms:', err);
       setError(err.message || 'Failed to fetch rooms');
@@ -111,6 +122,7 @@ const RoomServicePage = () => {
     };
     
     setRooms(prev => [...prev, transformedRoom]);
+    setRoomImageIndices(prev => ({ ...prev, [transformedRoom.id]: 0 }));
   };
 
   const handleEdit = (room) => {
@@ -147,6 +159,23 @@ const RoomServicePage = () => {
 
   const formatPrice = (price) => {
     return `Rs.${price.toLocaleString('en-IN')}`;
+  };
+
+  // Image carousel handlers
+  const handlePrevImage = (roomId, totalImages, e) => {
+    e.stopPropagation();
+    setRoomImageIndices(prev => ({
+      ...prev,
+      [roomId]: prev[roomId] === 0 ? totalImages - 1 : prev[roomId] - 1
+    }));
+  };
+
+  const handleNextImage = (roomId, totalImages, e) => {
+    e.stopPropagation();
+    setRoomImageIndices(prev => ({
+      ...prev,
+      [roomId]: prev[roomId] === totalImages - 1 ? 0 : prev[roomId] + 1
+    }));
   };
 
   if (loading) {
@@ -238,104 +267,138 @@ const RoomServicePage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rooms.map((room) => (
-              <div key={room.id} className="bg-white rounded-xl overflow-hidden border border-gray-300 shadow-lg hover:shadow-xl transition-shadow">
-                {/* Room Image */}
-                <div className="h-48 overflow-hidden relative">
-                  <img 
-                    src={room.image} 
-                    alt={room.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aG90ZWwlMjByb29tfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60";
-                    }}
-                  />
-                </div>
-                
-                {/* Room Details */}
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-semibold text-gray-800">{room.name}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${statusColors[room.status]}`}>
-                      {statusLabels[room.status]}
-                    </span>
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center text-gray-600 mb-3">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-gray-800 text-lg">{formatPrice(room.price)}/night</span>
-                    </div>
-                  </div>
+            {rooms.map((room) => {
+              const currentImageIndex = roomImageIndices[room.id] || 0;
+              const currentImage = room.images.length > 0 ? room.images[currentImageIndex] : room.image;
+              const hasMultipleImages = room.images.length > 1;
 
+              return (
+                <div key={room.id} className="bg-white rounded-xl overflow-hidden border border-gray-300 shadow-lg hover:shadow-xl transition-shadow">
+                  {/* Room Image with Carousel */}
+                  <div className="h-48 overflow-hidden relative group">
+                    <img 
+                      src={currentImage} 
+                      alt={`${room.name} - Image ${currentImageIndex + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aG90ZWwlMjByb29tfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60";
+                      }}
+                    />
+                    
+                    {/* Image Navigation Controls */}
+                    {hasMultipleImages && (
+                      <>
+                        {/* Previous Button */}
+                        <button
+                          onClick={(e) => handlePrevImage(room.id, room.images.length, e)}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Previous image"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+
+                        {/* Next Button */}
+                        <button
+                          onClick={(e) => handleNextImage(room.id, room.images.length, e)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Next image"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+
+                        {/* Image Counter */}
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                          {currentImageIndex + 1} / {room.images.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
                   {/* Room Details */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      Max {room.maxOccupancy} person{room.maxOccupancy > 1 ? 's' : ''}
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-semibold text-gray-800">{room.name}</h3>
+                      <span className={`text-xs px-2 py-1 rounded-full ${statusColors[room.status]}`}>
+                        {statusLabels[room.status]}
+                      </span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                      </svg>
-                      {room.area} sqm
+                    
+                    {/* Price */}
+                    <div className="flex items-center text-gray-600 mb-3">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-800 text-lg">{formatPrice(room.price)}/night</span>
+                      </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7z" />
-                      </svg>
-                      {room.beds}
+
+                    {/* Room Details */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Max {room.maxOccupancy} person{room.maxOccupancy > 1 ? 's' : ''}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                        {room.area} sqm
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7z" />
+                        </svg>
+                        {room.beds}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11M20 10v11" />
+                        </svg>
+                        {room.bathrooms} Bathroom{room.bathrooms > 1 ? 's' : ''}
+                      </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11M20 10v11" />
-                      </svg>
-                      {room.bathrooms} Bathroom{room.bathrooms > 1 ? 's' : ''}
+                    
+                    {/* Amenities */}
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Amenities</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {room.amenities.length > 0 ? (
+                          room.amenities.map((amenity, index) => (
+                            <span key={index} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                              {amenity}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-500 text-xs">No amenities listed</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Amenities */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Amenities</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {room.amenities.length > 0 ? (
-                        room.amenities.map((amenity, index) => (
-                          <span key={index} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                            {amenity}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-gray-500 text-xs">No amenities listed</span>
-                      )}
+                    
+                    {/* Action Buttons */}
+                    <div className="flex justify-between">
+                      <button 
+                        onClick={() => handleEdit(room)}
+                        className="text-[#2953A6] hover:text-[#1F74BF] font-medium text-sm flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteClick(room)}
+                        className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete
+                      </button>
                     </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="flex justify-between">
-                    <button 
-                      onClick={() => handleEdit(room)}
-                      className="text-[#2953A6] hover:text-[#1F74BF] font-medium text-sm flex items-center"
-                    >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      Edit
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteClick(room)}
-                      className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center"
-                    >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Delete
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
