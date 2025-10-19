@@ -195,19 +195,23 @@ const EditRoom = ({ editModal, setEditModal, currentRoom, setCurrentRoom, onRoom
       const finalImages = [...existingImages, ...newImageUrls];
 
       // Prepare the data for API update - FIXED VERSION
-      const amenitiesArray = formData.amenities.split(',').map(amenity => amenity.trim()).filter(amenity => amenity);
+      const amenitiesArray = formData.amenities
+        .split(',')
+        .map(amenity => amenity.trim())
+        .filter(amenity => amenity);
       
       const updatedRoomData = {
+        serviceProviderId: parseInt(serviceProviderId), // Include service provider ID
         name: formData.name,
         price: parseFloat(formData.price),
         maxOccupancy: parseInt(formData.maxOccupancy),
         area: parseInt(formData.area),
-        bedType: formData.bedType,  // Send as separate field
-        numberOfBeds: parseInt(formData.numberOfBeds),  // Send as separate field
+        bedType: formData.bedType,
+        numberOfBeds: parseInt(formData.numberOfBeds),
         bathrooms: parseInt(formData.bathrooms),
         amenities: amenitiesArray,
         status: formData.status,
-        image: finalImages.length > 0 ? finalImages[0] : ''  // Send as 'image' (singular), first image
+        images: finalImages  // ✅ FIXED: Send full images array (plural)
       };
 
       console.log('Update data being sent:', updatedRoomData);
@@ -223,8 +227,7 @@ const EditRoom = ({ editModal, setEditModal, currentRoom, setCurrentRoom, onRoom
         ...currentRoom,
         ...updatedRoomData,
         beds: bedDescription,  // Add the formatted beds string for display
-        images: finalImages,   // Keep full images array for local state
-        image: finalImages.length > 0 ? finalImages[0] : currentRoom.image
+        images: finalImages    // Full images array
       };
 
       setEditUploadProgress('Room updated successfully! 🎉');

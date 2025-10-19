@@ -136,10 +136,10 @@ const SidebarTourGuide = () => {
             )}
           </div>
           
-          <div className="flex flex-col justify-center min-w-0 flex-1">
-            <h1 className="text-lg font-semibold text-black leading-tight font-poppins truncate">
+          <div className="flex flex-col justify-center min-w-0 flex-1 ">
+            <p className="text-lg font-semibold text-black leading-tight font-poppins truncate">
               {displayName}
-            </h1>
+            </p>
             <p className="text-xs text-black/80 leading-tight font-poppins truncate">
               {displayEmail}
             </p>

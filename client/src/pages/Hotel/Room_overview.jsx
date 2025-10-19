@@ -18,6 +18,20 @@ const RoomsOverview = () => {
   const serviceProvider = localStorage.getItem('serviceProvider');
   const serviceProviderId = serviceProvider ? JSON.parse(serviceProvider).id : null;
 
+  // Helper function to safely get the first image
+  const getFirstImage = (room) => {
+    // Check if images array exists and has items
+    if (room.images && Array.isArray(room.images) && room.images.length > 0) {
+      return room.images[0];
+    }
+    // Fallback to single image field if it exists
+    if (room.image && typeof room.image === 'string') {
+      return room.image;
+    }
+    // Default fallback image
+    return "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aG90ZWwlMjByb29tfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60";
+  };
+
   // Fetch rooms data from backend
   useEffect(() => {
     const fetchRoomsData = async () => {
@@ -38,7 +52,8 @@ const RoomsOverview = () => {
         const transformedRooms = data.map(room => ({
           id: room.id,
           name: room.name,
-          image: room.images && room.images.length > 0 ? room.images[0] : "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aG90ZWwlMjByb29tfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+          image: getFirstImage(room), // Use helper function
+          images: room.images || [], // Keep full images array for reference
           price: room.price,
           area: `${room.area} sqm`,
           amenities: Array.isArray(room.amenities) ? room.amenities : [],

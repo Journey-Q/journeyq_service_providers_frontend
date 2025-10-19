@@ -1,93 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/SidebarTourGuide";
 import InsertTour from "./InsertTour";
 import EditTour from "./EditTour";
+import SingleTour from "./SingleTour";
+import TourPackageService from "../../api_service/TourPackageService";
+
 
 const Tours = () => {
   const [showInsertModal, setShowInsertModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [photoModal, setPhotoModal] = useState(false);
   const [currentTour, setCurrentTour] = useState(null);
+  const [selectedTour, setSelectedTour] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [tours, setTours] = useState([
-    {
-      id: 1,
-      name: "Anuradhapura Cultural Visit",
-      image:
-        "https://images.unsplash.com/photo-1659244352464-75e539618056?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YW51cmFkaGFwdXJhfGVufDB8fDB8fHww",
-      originalPrice: 15000,
-      discount: 10,
-      finalPrice: 13500,
-      pricePerPerson: 13500,
-      duration: "1 day",
-      places: ["Anuradhapura Temples", "Ruwanwelisaya", "Isurumuniya"],
-      highlights: ["Historical sites", "Cultural experience", "Local cuisine"],
-      status: "available",
-      rating: 4.5,
-      maxPeople: 15,
-      minPeople: 2,
-      aboutTour:
-        "Explore the ancient capital of Sri Lanka with its magnificent temples, stupas, and archaeological wonders. This cultural journey takes you through 2,500 years of history.",
-      included: [
-        "Transportation",
-        "Professional guide",
-        "Entrance fees",
-        "Lunch",
-      ],
-      itinerary: [
-        { time: "8:00 AM", activity: "Pickup from hotel" },
-        { time: "10:00 AM", activity: "Visit Ruwanwelisaya Stupa" },
-        { time: "12:00 PM", activity: "Lunch at local restaurant" },
-        { time: "2:00 PM", activity: "Explore Isurumuniya Temple" },
-        { time: "4:00 PM", activity: "Return journey" },
-      ],
-      importantNotes: [
-        "Bring comfortable walking shoes",
-        "Dress modestly for temples",
-        "Carry water bottle",
-        "Weather can be hot - bring sun protection",
-      ],
-    },
-    {
-      id: 2,
-      name: "Sigiriya & Dambulla Adventure",
-      image:
-        "https://plus.unsplash.com/premium_photo-1730145749791-28fc538d7203?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c2lnaXJpeWF8ZW58MHx8MHx8fDA%3D",
-      originalPrice: 25000,
-      discount: 8,
-      finalPrice: 23000,
-      pricePerPerson: 23000,
-      duration: "1 day",
-      places: ["Sigiriya Rock Fortress", "Dambulla Cave Temple"],
-      highlights: ["UNESCO sites", "Scenic views", "Historical significance"],
-      status: "available",
-      rating: 4.8,
-      maxPeople: 12,
-      minPeople: 2,
-      aboutTour:
-        "Climb the iconic Sigiriya Rock Fortress and explore the magnificent Dambulla Cave Temple. Two UNESCO World Heritage sites in one incredible day.",
-      included: [
-        "Transportation",
-        "Professional guide",
-        "Entrance fees",
-        "All meals",
-        "Water",
-      ],
-      itinerary: [
-        { time: "7:00 AM", activity: "Pickup from hotel" },
-        { time: "8:30 AM", activity: "Climb Sigiriya Rock" },
-        { time: "12:00 PM", activity: "Lunch break" },
-        { time: "2:00 PM", activity: "Visit Dambulla Cave Temple" },
-        { time: "5:00 PM", activity: "Return journey" },
-      ],
-      importantNotes: [
-        "Moderate fitness required for climbing",
-        "Bring comfortable hiking shoes",
-        "Early morning start recommended",
-        "Carry ID for entrance",
-      ],
-    },
-  ]);
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priceFilter, setPriceFilter] = useState("all");
+
+  const [tours, setTours] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -109,16 +43,155 @@ const Tours = () => {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [tourPhotos, setTourPhotos] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
 
   const statusColors = {
+    AVAILABLE: "bg-green-100 text-green-800",
+    UNAVAILABLE: "bg-red-100 text-red-800",
     available: "bg-green-100 text-green-800",
     unavailable: "bg-red-100 text-red-800",
   };
 
   const statusLabels = {
+    AVAILABLE: "Available",
+    UNAVAILABLE: "Unavailable",
     available: "Available",
     unavailable: "Unavailable",
   };
+
+  // Fetch tours on component mount
+  useEffect(() => {
+    fetchTours();
+  }, []);
+
+  const fetchTours = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // Replace with actual service provider ID from your auth context or localStorage
+      const serviceProviderId = localStorage.getItem("serviceProviderId") || "33"; // Fallback for demo
+      const tourPackages = await TourPackageService.getTourPackagesByServiceProviderId(serviceProviderId);
+      
+      // Transform backend data to match frontend structure
+      const transformedTours = tourPackages.map(tour => ({
+        id: tour.id,
+        name: tour.name,
+        image: tour.image,
+        originalPrice: tour.originalPrice,
+        discount: tour.discount,
+        finalPrice: tour.finalPrice,
+        pricePerPerson: tour.pricePerPerson,
+        duration: tour.duration,
+        places: tour.places || [],
+        highlights: tour.highlights || [],
+        status: tour.status?.toLowerCase() || "available",
+        rating: tour.rating,
+        maxPeople: tour.maxPeople,
+        minPeople: tour.minPeople,
+        aboutTour: tour.aboutTour,
+        included: tour.included || [],
+        itinerary: tour.itinerary || [],
+        importantNotes: tour.importantNotes || [],
+        pastTourPhotos: tour.pastTourImages?.map(img => img.imageUrl) || [],
+        serviceProviderId: tour.serviceProviderId
+      }));
+      
+      setTours(transformedTours);
+    } catch (err) {
+      console.error("Error fetching tours:", err);
+      setError(err.message);
+      // Fallback to demo data if API fails
+      setTours(getDemoTours());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Demo data fallback
+  const getDemoTours = () => [
+    {
+      id: 1,
+      name: "Anuradhapura Cultural Visit",
+      image: "https://images.unsplash.com/photo-1659244352464-75e539618056?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YW51cmFkaGFwdXJhfGVufDB8fDB8fHww",
+      originalPrice: 15000,
+      discount: 10,
+      finalPrice: 13500,
+      pricePerPerson: 13500,
+      duration: "1 day",
+      places: ["Anuradhapura Temples", "Ruwanwelisaya", "Isurumuniya"],
+      highlights: ["Historical sites", "Cultural experience", "Local cuisine"],
+      status: "available",
+      rating: 4.5,
+      maxPeople: 15,
+      minPeople: 2,
+      aboutTour: "Explore the ancient capital of Sri Lanka with its magnificent temples, stupas, and archaeological wonders. This cultural journey takes you through 2,500 years of history.",
+      included: ["Transportation", "Professional guide", "Entrance fees", "Lunch"],
+      itinerary: [
+        { time: "8:00 AM", activity: "Pickup from hotel" },
+        { time: "10:00 AM", activity: "Visit Ruwanwelisaya Stupa" },
+        { time: "12:00 PM", activity: "Lunch at local restaurant" },
+        { time: "2:00 PM", activity: "Explore Isurumuniya Temple" },
+        { time: "4:00 PM", activity: "Return journey" },
+      ],
+      importantNotes: [
+        "Bring comfortable walking shoes",
+        "Dress modestly for temples",
+        "Carry water bottle",
+        "Weather can be hot - bring sun protection",
+      ],
+      pastTourPhotos: [],
+    },
+    {
+      id: 2,
+      name: "Sigiriya & Dambulla Adventure",
+      image: "https://plus.unsplash.com/premium_photo-1730145749791-28fc538d7203?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c2lnaXJpeWF8ZW58MHx8MHx8fDA%3D",
+      originalPrice: 25000,
+      discount: 8,
+      finalPrice: 23000,
+      pricePerPerson: 23000,
+      duration: "1 day",
+      places: ["Sigiriya Rock Fortress", "Dambulla Cave Temple"],
+      highlights: ["UNESCO sites", "Scenic views", "Historical significance"],
+      status: "available",
+      rating: 4.8,
+      maxPeople: 12,
+      minPeople: 2,
+      aboutTour: "Climb the iconic Sigiriya Rock Fortress and explore the magnificent Dambulla Cave Temple. Two UNESCO World Heritage sites in one incredible day.",
+      included: ["Transportation", "Professional guide", "Entrance fees", "All meals", "Water"],
+      itinerary: [
+        { time: "7:00 AM", activity: "Pickup from hotel" },
+        { time: "8:30 AM", activity: "Climb Sigiriya Rock" },
+        { time: "12:00 PM", activity: "Lunch break" },
+        { time: "2:00 PM", activity: "Visit Dambulla Cave Temple" },
+        { time: "5:00 PM", activity: "Return journey" },
+      ],
+      importantNotes: [
+        "Moderate fitness required for climbing",
+        "Bring comfortable hiking shoes",
+        "Early morning start recommended",
+        "Carry ID for entrance",
+      ],
+      pastTourPhotos: [],
+    }
+  ];
+
+  // Filter tours based on search and filters
+  const filteredTours = tours.filter((tour) => {
+    const matchesSearch = tour.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || tour.status === statusFilter;
+    
+    let matchesPrice = true;
+    if (priceFilter === "low") {
+      matchesPrice = tour.finalPrice <= 15000;
+    } else if (priceFilter === "medium") {
+      matchesPrice = tour.finalPrice > 15000 && tour.finalPrice <= 30000;
+    } else if (priceFilter === "high") {
+      matchesPrice = tour.finalPrice > 30000;
+    }
+    
+    return matchesSearch && matchesStatus && matchesPrice;
+  });
 
   const calculateFinalPrice = (originalPrice, discount) => {
     const price = parseFloat(originalPrice) || 0;
@@ -138,109 +211,185 @@ const Tours = () => {
     }
   };
 
-  const handleInsertSubmit = (e) => {
-    e.preventDefault();
+  const handleTourPhotosUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const remainingSlots = 7 - tourPhotos.length;
+    const filesToAdd = files.slice(0, remainingSlots);
 
-    const placesArray = formData.places
-      .split(",")
-      .map((place) => place.trim())
-      .filter((place) => place);
-    const highlightsArray = formData.highlights
-      .split(",")
-      .map((highlight) => highlight.trim())
-      .filter((highlight) => highlight);
-    const includedArray = formData.included
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item);
-    const notesArray = formData.importantNotes
-      .split(",")
-      .map((note) => note.trim())
-      .filter((note) => note);
+    if (filesToAdd.length === 0) return;
 
-    const originalPrice = parseInt(formData.originalPrice);
-    const discount = parseFloat(formData.discount);
-    const finalPrice = calculateFinalPrice(originalPrice, discount);
+    const newPhotos = [...tourPhotos, ...filesToAdd];
+    setTourPhotos(newPhotos);
 
-    const newTour = {
-      id: tours.length + 1,
-      name: formData.name,
-      originalPrice: originalPrice,
-      discount: discount,
-      finalPrice: finalPrice,
-      pricePerPerson: finalPrice,
-      duration: formData.duration,
-      places: placesArray,
-      highlights: highlightsArray,
-      status: formData.status,
-      rating: parseFloat(formData.rating),
-      maxPeople: parseInt(formData.maxPeople),
-      minPeople: parseInt(formData.minPeople),
-      aboutTour: formData.aboutTour,
-      included: includedArray,
-      itinerary: [],
-      importantNotes: notesArray,
-      image:
-        imagePreview ||
-        "https://images.unsplash.com/photo-1582979512210-99b6a53386f9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YW51cmFkaGFwdXJhfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
-    };
-
-    setTours((prev) => [...prev, newTour]);
-    setShowInsertModal(false);
-    resetForm();
+    // Create previews for new files
+    filesToAdd.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreviews(prev => [...prev, e.target.result]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
-  const handleEditSubmit = (e) => {
+  const removeTourPhoto = (index) => {
+    const newPhotos = tourPhotos.filter((_, i) => i !== index);
+    const newPreviews = photoPreviews.filter((_, i) => i !== index);
+    setTourPhotos(newPhotos);
+    setPhotoPreviews(newPreviews);
+  };
+
+  const handleAddTourPhotos = (tour) => {
+    setCurrentTour(tour);
+    setTourPhotos([]);
+    setPhotoPreviews([]);
+    setPhotoModal(true);
+  };
+
+  const handleSaveTourPhotos = () => {
+    if (currentTour && tourPhotos.length > 0) {
+      setTours(prev => prev.map(tour => 
+        tour.id === currentTour.id 
+          ? { ...tour, pastTourPhotos: [...tour.pastTourPhotos, ...photoPreviews] }
+          : tour
+      ));
+    }
+    setPhotoModal(false);
+    setCurrentTour(null);
+    setTourPhotos([]);
+    setPhotoPreviews([]);
+  };
+
+  const handleInsertSubmit = async (e) => {
     e.preventDefault();
 
-    const placesArray = formData.places
-      .split(",")
-      .map((place) => place.trim())
-      .filter((place) => place);
-    const highlightsArray = formData.highlights
-      .split(",")
-      .map((highlight) => highlight.trim())
-      .filter((highlight) => highlight);
-    const includedArray = formData.included
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item);
-    const notesArray = formData.importantNotes
-      .split(",")
-      .map((note) => note.trim())
-      .filter((note) => note);
+    try {
+      const placesArray = formData.places
+        .split(",")
+        .map((place) => place.trim())
+        .filter((place) => place);
+      const highlightsArray = formData.highlights
+        .split(",")
+        .map((highlight) => highlight.trim())
+        .filter((highlight) => highlight);
+      const includedArray = formData.included
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item);
+      const notesArray = formData.importantNotes
+        .split(",")
+        .map((note) => note.trim())
+        .filter((note) => note);
 
-    const originalPrice = parseInt(formData.originalPrice);
-    const discount = parseFloat(formData.discount);
-    const finalPrice = calculateFinalPrice(originalPrice, discount);
+      const originalPrice = parseInt(formData.originalPrice);
+      const discount = parseFloat(formData.discount);
+      const finalPrice = calculateFinalPrice(originalPrice, discount);
 
-    const updatedTour = {
-      id: currentTour.id,
-      name: formData.name,
-      originalPrice: originalPrice,
-      discount: discount,
-      finalPrice: finalPrice,
-      pricePerPerson: finalPrice,
-      duration: formData.duration,
-      places: placesArray,
-      highlights: highlightsArray,
-      status: formData.status,
-      rating: parseFloat(formData.rating),
-      maxPeople: parseInt(formData.maxPeople),
-      minPeople: parseInt(formData.minPeople),
-      aboutTour: formData.aboutTour,
-      included: includedArray,
-      itinerary: [],
-      importantNotes: notesArray,
-      image: imagePreview || currentTour.image,
-    };
+      const newTourData = {
+        serviceProviderId: localStorage.getItem("serviceProviderId") || "33",
+        name: formData.name,
+        originalPrice: originalPrice,
+        discount: discount,
+        finalPrice: finalPrice,
+        pricePerPerson: finalPrice,
+        duration: formData.duration,
+        places: placesArray,
+        highlights: highlightsArray,
+        status: formData.status.toUpperCase(),
+        rating: parseFloat(formData.rating),
+        maxPeople: parseInt(formData.maxPeople),
+        minPeople: parseInt(formData.minPeople),
+        aboutTour: formData.aboutTour,
+        included: includedArray,
+        itinerary: [],
+        importantNotes: notesArray,
+        image: imagePreview || "https://images.unsplash.com/photo-1582979512210-99b6a53386f9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YW51cmFkaGFwdXJhfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+      };
 
-    setTours((prev) =>
-      prev.map((tour) => (tour.id === currentTour.id ? updatedTour : tour))
-    );
-    setShowEditModal(false);
-    resetForm();
-    setCurrentTour(null);
+      const createdTour = await TourPackageService.createTourPackage(newTourData);
+      
+      // Transform and add to local state
+      const transformedTour = {
+        id: createdTour.id,
+        ...newTourData,
+        status: newTourData.status.toLowerCase(),
+        pastTourPhotos: []
+      };
+      
+      setTours((prev) => [...prev, transformedTour]);
+      setShowInsertModal(false);
+      resetForm();
+    } catch (error) {
+      console.error("Error creating tour:", error);
+      alert("Failed to create tour: " + error.message);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const placesArray = formData.places
+        .split(",")
+        .map((place) => place.trim())
+        .filter((place) => place);
+      const highlightsArray = formData.highlights
+        .split(",")
+        .map((highlight) => highlight.trim())
+        .filter((highlight) => highlight);
+      const includedArray = formData.included
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item);
+      const notesArray = formData.importantNotes
+        .split(",")
+        .map((note) => note.trim())
+        .filter((note) => note);
+
+      const originalPrice = parseInt(formData.originalPrice);
+      const discount = parseFloat(formData.discount);
+      const finalPrice = calculateFinalPrice(originalPrice, discount);
+
+      const updatedTourData = {
+        serviceProviderId: currentTour.serviceProviderId,
+        name: formData.name,
+        originalPrice: originalPrice,
+        discount: discount,
+        finalPrice: finalPrice,
+        pricePerPerson: finalPrice,
+        duration: formData.duration,
+        places: placesArray,
+        highlights: highlightsArray,
+        status: formData.status.toUpperCase(),
+        rating: parseFloat(formData.rating),
+        maxPeople: parseInt(formData.maxPeople),
+        minPeople: parseInt(formData.minPeople),
+        aboutTour: formData.aboutTour,
+        included: includedArray,
+        itinerary: currentTour.itinerary || [],
+        importantNotes: notesArray,
+        image: imagePreview || currentTour.image,
+      };
+
+      await TourPackageService.updateTourPackage(currentTour.id, updatedTourData);
+      
+      // Update local state
+      const updatedTour = {
+        ...currentTour,
+        ...updatedTourData,
+        status: updatedTourData.status.toLowerCase(),
+        pastTourPhotos: currentTour.pastTourPhotos || []
+      };
+
+      setTours((prev) =>
+        prev.map((tour) => (tour.id === currentTour.id ? updatedTour : tour))
+      );
+      setShowEditModal(false);
+      resetForm();
+      setCurrentTour(null);
+    } catch (error) {
+      console.error("Error updating tour:", error);
+      alert("Failed to update tour: " + error.message);
+    }
   };
 
   const resetForm = () => {
@@ -270,18 +419,24 @@ const Tours = () => {
     setDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    setTours((prev) => prev.filter((tour) => tour.id !== currentTour.id));
-    setDeleteModal(false);
-    setCurrentTour(null);
+  const confirmDelete = async () => {
+    try {
+      await TourPackageService.deleteTourPackage(currentTour.id);
+      setTours((prev) => prev.filter((tour) => tour.id !== currentTour.id));
+      setDeleteModal(false);
+      setCurrentTour(null);
+    } catch (error) {
+      console.error("Error deleting tour:", error);
+      alert("Failed to delete tour: " + error.message);
+    }
   };
 
   const formatPrice = (price) => {
-    return `Rs.${price.toLocaleString("en-IN")}`;
+    return `Rs.${price?.toLocaleString("en-IN") || '0'}`;
   };
 
   const formatDiscount = (discount) => {
-    if (discount === 0) return null;
+    if (!discount || discount === 0) return null;
     return `${discount}% OFF`;
   };
 
@@ -292,31 +447,125 @@ const Tours = () => {
       originalPrice: tour.originalPrice,
       discount: tour.discount,
       duration: tour.duration,
-      places: tour.places.join(", "),
-      highlights: tour.highlights.join(", "),
+      places: tour.places?.join(", ") || "",
+      highlights: tour.highlights?.join(", ") || "",
       status: tour.status,
       image: tour.image,
       rating: tour.rating,
       maxPeople: tour.maxPeople,
       minPeople: tour.minPeople,
       aboutTour: tour.aboutTour,
-      included: tour.included.join(", "),
+      included: tour.included?.join(", ") || "",
       itinerary: "",
-      importantNotes: tour.importantNotes.join(", "),
+      importantNotes: tour.importantNotes?.join(", ") || "",
     });
     setImagePreview(tour.image);
     setShowEditModal(true);
   };
+
+  const handleSingleTourEdit = (tour) => {
+    setSelectedTour(null);
+    handleEditTour(tour);
+  };
+
+  const handleSingleTourDelete = (tour) => {
+    setSelectedTour(null);
+    handleDeleteClick(tour);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <main className="flex-1 p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading tours...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <main className="flex-1 p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-center text-red-600">
+            <p>Error loading tours: {error}</p>
+            <button 
+              onClick={fetchTours}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
 
       <main className="flex-1 p-6 lg:p-8">
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          {/* Filters Section */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            {/* Search by Name */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
+            </select>
+
+            {/* Price Filter */}
+            <select
+              value={priceFilter}
+              onChange={(e) => setPriceFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Prices</option>
+              <option value="low">Low (≤ Rs.15,000)</option>
+              <option value="medium">Medium (Rs.15,001 - 30,000)</option>
+              <option value="high">High (≥ Rs.30,001)</option>
+            </select>
+          </div>
+
+          {/* Add New Tour Button */}
           <button
             onClick={() => setShowInsertModal(true)}
-            className="bg-[#0B9ED9] hover:bg-[#0891C7] text-white px-6 py-3 rounded-lg font-medium shadow-sm transition-all duration-200 flex items-center gap-2 hover:shadow-md"
+            className="bg-[#0B9ED9] hover:bg-[#0891C7] text-white px-6 py-3 rounded-lg font-medium shadow-sm transition-all duration-200 flex items-center gap-2 hover:shadow-md whitespace-nowrap"
           >
             <svg
               className="w-4 h-4"
@@ -336,12 +585,16 @@ const Tours = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tours.map((tour) => (
+          {filteredTours.map((tour) => (
             <div
               key={tour.id}
               className="bg-white rounded-xl overflow-hidden border border-gray-300 shadow-lg hover:shadow-xl transition-shadow"
             >
-              <div className="h-48 overflow-hidden relative">
+              {/* Clickable Image */}
+              <div 
+                className="h-48 overflow-hidden relative cursor-pointer"
+                onClick={() => setSelectedTour(tour)}
+              >
                 <img
                   src={tour.image}
                   alt={tour.name}
@@ -464,17 +717,17 @@ const Tours = () => {
                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    {tour.places.length} location
-                    {tour.places.length > 1 ? "s" : ""}
+                    {tour.places?.length || 0} location
+                    {(tour.places?.length || 0) > 1 ? "s" : ""}
                   </div>
                 </div>
 
-                <div className="mb-6">
+                <div className="mb-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">
                     Tour Highlights
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {tour.highlights.slice(0, 3).map((highlight, index) => (
+                    {tour.highlights?.slice(0, 3).map((highlight, index) => (
                       <span
                         key={index}
                         className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
@@ -482,43 +735,40 @@ const Tours = () => {
                         {highlight}
                       </span>
                     ))}
-                    {tour.highlights.length > 3 && (
+                    {(tour.highlights?.length || 0) > 3 && (
                       <span className="text-xs text-gray-500">
-                        +{tour.highlights.length - 3} more
+                        +{(tour.highlights?.length || 0) - 3} more
                       </span>
                     )}
                   </div>
                 </div>
 
+                {/* Add Past Tour Photos Button */}
                 <div className="mb-4">
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      About This Tour
-                    </h4>
-                    <p className="text-sm text-gray-600">{tour.aboutTour}</p>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      What's Included
-                    </h4>
-                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                      {tour.included.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Important Notes
-                    </h4>
-                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                      {tour.importantNotes.map((note, index) => (
-                        <li key={index}>{note}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  <button
+                    onClick={() => handleAddTourPhotos(tour)}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Add Past Tour Photos
+                    {(tour.pastTourPhotos?.length || 0) > 0 && (
+                      <span className="bg-purple-800 text-xs px-2 py-1 rounded-full">
+                        {tour.pastTourPhotos?.length || 0}
+                      </span>
+                    )}
+                  </button>
                 </div>
 
                 <div className="flex justify-between">
@@ -555,8 +805,7 @@ const Tours = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M
-                      19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                       />
                     </svg>
                     Delete
@@ -566,6 +815,12 @@ const Tours = () => {
             </div>
           ))}
         </div>
+
+        {filteredTours.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No tours found matching your criteria.</p>
+          </div>
+        )}
 
         {/* Insert Tour Modal */}
         <InsertTour
@@ -590,6 +845,115 @@ const Tours = () => {
           handleSubmit={handleEditSubmit}
           resetForm={resetForm}
         />
+
+        {/* Single Tour Detail Modal */}
+        {selectedTour && (
+          <SingleTour
+            tour={selectedTour}
+            onClose={() => setSelectedTour(null)}
+            onEdit={handleSingleTourEdit}
+            onDelete={handleSingleTourDelete}
+          />
+        )}
+
+        {/* Add Tour Photos Modal */}
+        {photoModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Add Past Tour Photos - {currentTour?.name}
+                  </h2>
+                  <button
+                    onClick={() => setPhotoModal(false)}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Photos (Maximum 7, {7 - tourPhotos.length} remaining)
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleTourPhotosUpload}
+                    disabled={tourPhotos.length >= 7}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    You can select multiple images at once
+                  </p>
+                </div>
+
+                {/* Photo Previews */}
+                {photoPreviews.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Selected Photos</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {photoPreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={preview}
+                            alt={`Tour photo ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={() => removeTourPhoto(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Existing Photos */}
+                {currentTour?.pastTourPhotos && currentTour.pastTourPhotos.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Existing Photos</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {currentTour.pastTourPhotos.map((photo, index) => (
+                        <img
+                          key={index}
+                          src={photo}
+                          alt={`Existing tour photo ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => setPhotoModal(false)}
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveTourPhotos}
+                    disabled={tourPhotos.length === 0}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Save Photos
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete Confirmation Modal */}
         {deleteModal && (

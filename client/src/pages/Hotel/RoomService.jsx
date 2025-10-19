@@ -15,6 +15,11 @@ const RoomServicePage = () => {
   const [error, setError] = useState(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   
+  // Filter states
+  const [searchName, setSearchName] = useState('');
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterOccupancy, setFilterOccupancy] = useState('');
+  
   // Track current image index for each room
   const [roomImageIndices, setRoomImageIndices] = useState({});
   
@@ -161,6 +166,15 @@ const RoomServicePage = () => {
     return `Rs.${price.toLocaleString('en-IN')}`;
   };
 
+  // Filter rooms based on search and filter criteria
+  const filteredRooms = rooms.filter(room => {
+    const matchesName = room.name.toLowerCase().includes(searchName.toLowerCase());
+    const matchesStatus = filterStatus === 'ALL' || room.status === filterStatus;
+    const matchesOccupancy = filterOccupancy === '' || room.maxOccupancy.toString() === filterOccupancy;
+    
+    return matchesName && matchesStatus && matchesOccupancy;
+  });
+
   // Image carousel handlers
   const handlePrevImage = (roomId, totalImages, e) => {
     e.stopPropagation();
@@ -256,18 +270,86 @@ const RoomServicePage = () => {
           </button>
         </div>
 
+        {/* Filter Section */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search by Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Search by Name</label>
+              <input
+                type="text"
+                placeholder="Enter room name..."
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B9ED9] focus:border-transparent outline-none transition-all"
+              />
+            </div>
+
+            {/* Filter by Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B9ED9] focus:border-transparent outline-none transition-all"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="AVAILABLE">Available</option>
+                <option value="OCCUPIED">Occupied</option>
+                <option value="MAINTENANCE">Maintenance</option>
+              </select>
+            </div>
+
+            {/* Filter by Occupancy */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Max Occupancy</label>
+              <input
+                type="number"
+                placeholder="Number of people..."
+                value={filterOccupancy}
+                onChange={(e) => setFilterOccupancy(e.target.value)}
+                min="1"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B9ED9] focus:border-transparent outline-none transition-all"
+              />
+            </div>
+          </div>
+          
+          {/* Clear Filters Button */}
+          {(searchName || filterStatus !== 'ALL' || filterOccupancy) && (
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => {
+                  setSearchName('');
+                  setFilterStatus('ALL');
+                  setFilterOccupancy('');
+                }}
+                className="text-sm text-gray-600 hover:text-gray-800 font-medium flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear Filters
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Rooms Grid */}
-        {rooms.length === 0 ? (
+        {filteredRooms.length === 0 ? (
           <div className="text-center py-12">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No rooms found</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by adding a new room.</p>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              {rooms.length === 0 ? 'No rooms found' : 'No rooms match your filters'}
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {rooms.length === 0 ? 'Get started by adding a new room.' : 'Try adjusting your search criteria.'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rooms.map((room) => {
+            {filteredRooms.map((room) => {
               const currentImageIndex = roomImageIndices[room.id] || 0;
               const currentImage = room.images.length > 0 ? room.images[currentImageIndex] : room.image;
               const hasMultipleImages = room.images.length > 1;

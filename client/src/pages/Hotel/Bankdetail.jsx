@@ -207,19 +207,19 @@ const BankDetailsPage = () => {
     return masked + visible;
   };
 
-  const getStatusColor = (status) => {
-    const statusUpper = status?.toUpperCase();
-    switch (statusUpper) {
-      case 'VERIFIED':
-        return 'text-green-600 bg-green-100';
-      case 'PENDING':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'FAILED':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
+  // const getStatusColor = (status) => {
+  //   const statusUpper = status?.toUpperCase();
+  //   switch (statusUpper) {
+  //     case 'VERIFIED':
+  //       return 'text-green-600 bg-green-100';
+  //     case 'PENDING':
+  //       return 'text-yellow-600 bg-yellow-100';
+  //     case 'FAILED':
+  //       return 'text-red-600 bg-red-100';
+  //     default:
+  //       return 'text-gray-600 bg-gray-100';
+  //   }
+  // };
 
   const getStatusIcon = (status) => {
     const statusUpper = status?.toUpperCase();
@@ -506,12 +506,12 @@ const BankDetailsPage = () => {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-3">
                     <h2 className="text-xl font-semibold text-gray-800">Bank Account Information</h2>
-                    {bankDetails && (
+                    {/* {bankDetails && (
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(bankDetails.verificationStatus)}`}>
                         {getStatusIcon(bankDetails.verificationStatus)}
                         <span className="ml-1 capitalize">{bankDetails.verificationStatus?.toLowerCase()}</span>
                       </span>
-                    )}
+                    )} */}
                   </div>
                   
                   {!isEditing ? (
@@ -556,7 +556,7 @@ const BankDetailsPage = () => {
                 {renderFormFields(false)}
 
                 {/* Verification Notice */}
-                {bankDetails && bankDetails.verificationStatus?.toUpperCase() === 'PENDING' && (
+                {/* {bankDetails && bankDetails.verificationStatus?.toUpperCase() === 'PENDING' && (
                   <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-center">
                       <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
@@ -568,7 +568,7 @@ const BankDetailsPage = () => {
                       </div>
                     </div>
                   </div>
-                )}
+                )} */}
 
                 {bankDetails && bankDetails.verificationStatus?.toUpperCase() === 'FAILED' && (
                   <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
