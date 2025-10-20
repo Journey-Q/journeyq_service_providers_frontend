@@ -102,17 +102,17 @@ const SidebarTravelAgency = () => {
   const navigationItems = [
     { path: '/travel-agency/dashboard', icon: FiHome, label: 'Dashboard' },
     { path: '/travel-agency/booking-history', icon: FiCalendar, label: 'Booking History' },
-    { path: '/travel-agency/payment-history', icon: FiDollarSign, label: 'Payment History' },
+    // { path: '/travel-agency/payment-history', icon: FiDollarSign, label: 'Payment History' },
     { path: '/travel-agency/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
     { path: '/travel-agency/vehicles', icon: FiTruck, label: 'Vehicles' },
     { path: '/travel-agency/drivers', icon: FiUsers, label: 'Drivers' },
     { path: '/travel-agency/promotions', icon: FiTag, label: 'Promotions' },
-    {
-      path: '/travel-agency/chat',
-      icon: FiMessageSquare,
-      label: 'Messages',
-      badge: 3
-    },
+    // {
+    //   path: '/travel-agency/chat',
+    //   icon: FiMessageSquare,
+    //   label: 'Messages',
+    //   badge: 3
+    // },
     { path: '/travel-agency/reviews', icon: FiStar, label: 'Reviews & Ratings' },
     { path: '/travel-agency/settings', icon: FiSettings, label: 'Settings' },
   ];
@@ -138,9 +138,9 @@ const SidebarTravelAgency = () => {
           </div>
           
           <div className="flex flex-col justify-center min-w-0 flex-1">
-            <h1 className="text-lg font-semibold text-black leading-tight font-poppins truncate">
+            <p className="text-lg font-semibold text-black leading-tight font-poppins truncate">
               {displayName}
-            </h1>
+            </p>
             <p className="text-xs text-black/80 leading-tight font-poppins truncate">
               {displayEmail}
             </p>

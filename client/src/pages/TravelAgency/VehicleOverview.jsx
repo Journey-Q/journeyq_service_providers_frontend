@@ -1,43 +1,110 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye } from 'lucide-react';
+import { Eye, Loader2, AlertTriangle } from 'lucide-react';
+import TravelVehicleService from '../../api_service/TravelVehicleService';
 
 const VehicleOverview = () => {
-  // Sample available vehicles data
-  const availableVehicles = [
-    {
-      id: 1,
-      name: "Toyota Prius",
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/2024_Toyota_Prius_Excel_PHEV_-_1987cc_2.0_%28225PS%29_Plug-in_Hybrid_-_Silver_Metallic_-_10-2024%2C_Front_Quarter.jpg/500px-2024_Toyota_Prius_Excel_PHEV_-_1987cc_2.0_%28225PS%29_Plug-in_Hybrid_-_Silver_Metallic_-_10-2024%2C_Front_Quarter.jpg",
-      pricePerDay: 3000,
-      seats: 4,
-      features: ["Hybrid", "Air Conditioning", "Automatic"],
-      status: "available"
-    },
-    {
-      id: 2,
-      name: "Nissan Caravan",
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Nissan_NV350_Caravan_VR2E26.jpg/500px-Nissan_NV350_Caravan_VR2E26.jpg",
-      pricePerDay: 4500,
-      seats: 10,
-      features: ["Spacious", "AC", "Manual"],
-      status: "available"
-    },
-    {
-      id: 3,
-      name: "Suzuki Alto",
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/1994-1997_Suzuki_Alto.jpg/500px-1994-1997_Suzuki_Alto.jpg",
-      pricePerDay: 2000,
-      seats: 4,
-      features: ["Compact", "Economical", "Automatic"],
-      status: "available"
-    }
-  ];
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const totalVehicles = 20;
-  const availableCount = 6;
-  const rentedCount = 12;
-  const maintenanceCount = 2;
+  // Get service provider ID
+  const serviceProvider = localStorage.getItem("serviceProvider");
+  const serviceProviderId = serviceProvider
+    ? JSON.parse(serviceProvider).id
+    : null;
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    if (!serviceProviderId) {
+      setError('Service provider not found. Please login again.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const vehiclesData = await TravelVehicleService.getVehiclesByServiceProviderId(serviceProviderId);
+      
+      // Transform backend data
+      const transformedVehicles = vehiclesData.map(vehicle => ({
+        id: vehicle.id,
+        name: vehicle.name,
+        image: vehicle.image,
+        pricePerKmWithAC: vehicle.pricePerKmWithAC,
+        pricePerKmWithoutAC: vehicle.pricePerKmWithoutAC,
+        numberOfSeats: vehicle.numberOfSeats,
+        features: vehicle.features || [],
+        status: vehicle.status?.toLowerCase() || 'available',
+        type: vehicle.type,
+        ac: vehicle.ac
+      }));
+      
+      setVehicles(transformedVehicles);
+    } catch (err) {
+      console.error('Error fetching vehicles:', err);
+      setError(err.message || 'Failed to fetch vehicles');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate statistics
+  const totalVehicles = vehicles.length;
+  const availableVehicles = vehicles.filter(v => v.status === 'available');
+  const availableCount = availableVehicles.length;
+  const rentedCount = vehicles.filter(v => v.status === 'unavailable').length;
+  const maintenanceCount = vehicles.filter(v => v.status === 'maintenance').length;
+
+  // Get first 3 available vehicles for display
+  const displayVehicles = availableVehicles.slice(0, 3);
+
+  // Calculate fleet usage rate
+  const fleetUsageRate = totalVehicles > 0 
+    ? Math.round(((rentedCount + maintenanceCount) / totalVehicles) * 100) 
+    : 0;
+
+  if (loading) {
+    return (
+      <section className="bg-white shadow-md border border-gray-100 flex flex-col h-full">
+        <header className="p-4 border-b border-gray-100 flex-shrink-0">
+          <h2 className="text-xl font-bold text-gray-800">Available Vehicles</h2>
+        </header>
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
+            <p className="text-sm text-gray-600">Loading vehicles...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="bg-white shadow-md border border-gray-100 flex flex-col h-full">
+        <header className="p-4 border-b border-gray-100 flex-shrink-0">
+          <h2 className="text-xl font-bold text-gray-800">Available Vehicles</h2>
+        </header>
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center">
+            <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-3" />
+            <p className="text-sm text-red-600 mb-3">{error}</p>
+            <button 
+              onClick={fetchVehicles}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-white shadow-md border border-gray-100 flex flex-col h-full">
@@ -71,51 +138,90 @@ const VehicleOverview = () => {
 
         {/* Available Vehicles List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {availableVehicles.map((vehicle) => (
-            <div key={vehicle.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-              <img 
-                src={vehicle.image} 
-                alt={vehicle.name}
-                className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <h5 className="font-medium text-gray-800 text-sm truncate">{vehicle.name}</h5>
-                <div className="flex items-center text-xs text-gray-600 mt-1">
-                  <span className="font-medium text-[#2953A6]">Rs.{vehicle.pricePerDay}/day</span>
-                  <span className="mx-1">•</span>
-                  <span>{vehicle.seats} seats</span>
-                </div>
-                <div className="flex items-center space-x-1 mt-1">
-                  {vehicle.features.slice(0, 2).map((feature, index) => (
-                    <span key={index} className="bg-white text-gray-600 text-xs px-1.5 py-0.5 rounded border">
-                      {feature}
-                    </span>
-                  ))}
-                  {vehicle.features.length > 2 && (
-                    <span className="text-gray-500 text-xs">
-                      +{vehicle.features.length - 2}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex-shrink-0">
-                Available
-              </span>
+          {displayVehicles.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-500">No available vehicles</p>
+              <Link 
+                to="/travel/vehicle-management"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2 inline-block"
+              >
+                Add vehicles
+              </Link>
             </div>
-          ))}
+          ) : (
+            displayVehicles.map((vehicle) => (
+              <div key={vehicle.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <img 
+                  src={vehicle.image} 
+                  alt={vehicle.name}
+                  className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/100x100?text=Vehicle';
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <h5 className="font-medium text-gray-800 text-sm truncate">{vehicle.name}</h5>
+                  <div className="flex items-center text-xs text-gray-600 mt-1">
+                    <span className="font-medium text-[#2953A6]">
+                      Rs.{vehicle.pricePerKmWithAC}/km
+                    </span>
+                    <span className="mx-1">•</span>
+                    <span>{vehicle.numberOfSeats} seats</span>
+                  </div>
+                  <div className="flex items-center space-x-1 mt-1">
+                    {vehicle.ac && (
+                      <span className="bg-white text-gray-600 text-xs px-1.5 py-0.5 rounded border">
+                        AC
+                      </span>
+                    )}
+                    <span className="bg-white text-gray-600 text-xs px-1.5 py-0.5 rounded border">
+                      {vehicle.type}
+                    </span>
+                    {vehicle.features.length > 0 && (
+                      <span className="text-gray-500 text-xs">
+                        +{vehicle.features.length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex-shrink-0">
+                  Available
+                </span>
+              </div>
+            ))
+          )}
+          
+          {availableCount > 3 && (
+            <div className="text-center pt-2">
+              <Link 
+                to="/travel/vehicle-management"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                View {availableCount - 3} more available vehicle{availableCount - 3 > 1 ? 's' : ''}
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Footer Stats */}
         <div className="p-4 border-t border-gray-100 flex-shrink-0 space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Fleet Usage Rate:</span>
-            <span className="font-medium text-gray-800">
-              {Math.round((rentedCount / totalVehicles) * 100)}%
-            </span>
+            <span className="text-gray-600">Total Vehicles:</span>
+            <span className="font-medium text-gray-800">{totalVehicles}</span>
           </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600">Fleet Usage Rate:</span>
+            <span className="font-medium text-gray-800">{fleetUsageRate}%</span>
+          </div>
+          {maintenanceCount > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">In Maintenance:</span>
+              <span className="font-medium text-yellow-600">{maintenanceCount}</span>
+            </div>
+          )}
           <Link 
-            to="/travel-agency/vehicles"
-            className="block w-full px-4 py-2 bg-[#1F74BF] text-white text-center rounded-lg transition-colors font-medium text-sm"
+            to="/travel/vehicle-management"
+            className="block w-full px-4 py-2 bg-[#1F74BF] hover:bg-[#2953A6] text-white text-center rounded-lg transition-colors font-medium text-sm"
           >
             Manage All Vehicles
           </Link>

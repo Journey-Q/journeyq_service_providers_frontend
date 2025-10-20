@@ -105,12 +105,12 @@ const SidebarHotel = () => {
     { path: '/hotel/promotions', icon: FiTag, label: 'Promotions' },
     { path: '/hotel/payment-history', icon: FiDollarSign, label: 'Payment History' },
     { path: '/hotel/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
-    {
-      path: '/hotel/chat',
-      icon: FiMessageSquare,
-      label: 'Messages',
-      badge: 3
-    },
+    // {
+    //   path: '/hotel/chat',
+    //   icon: FiMessageSquare,
+    //   label: 'Messages',
+    //   badge: 3
+    // },
     { path: '/hotel/reviews', icon: FiStar, label: 'Reviews & Ratings' },
     { path: '/hotel/settings', icon: FiSettings, label: 'Settings' },
   ];
@@ -136,12 +136,12 @@ const SidebarHotel = () => {
           </div>
           
           <div className="flex flex-col justify-center min-w-0 flex-1">
-            <h1 className="text-lg font-semibold text-black leading-tight font-poppins truncate">
+            <p className="text-lg font-semibold text-black leading-tight font-poppins truncate">
               {displayName}
-            </h1>
-            <p className="text-xs text-black/80 leading-tight font-poppins truncate">
-              {displayEmail}
             </p>
+            {/* <p className="text-xs text-black/80 leading-tight font-poppins truncate">
+              {displayEmail}
+            </p> */}
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Base URL for your backend API
-const API_BASE_URL = 'https://serviceprovidersservice-production.up.railway.app/service';
+const API_BASE_URL = 'https://serviceprovidersservice-production-8f10.up.railway.app/service';
 
 // Create axios instance with default config
 const apiClient = axios.create({

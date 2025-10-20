@@ -102,16 +102,16 @@ const SidebarTourGuide = () => {
   const navigationItems = [
     { path: '/tour-guide/dashboard', icon: FiHome, label: 'Dashboard' },
     { path: '/tour-guide/booking-history', icon: FiCalendar, label: 'Booking History' },
-    { path: '/tour-guide/payment-history', icon: FiDollarSign, label: 'Payment History' },
+    // { path: '/tour-guide/payment-history', icon: FiDollarSign, label: 'Payment History' },
     { path: '/tour-guide/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
     { path: '/tour-guide/tours', icon: FiMap, label: 'Tour Packages' },
     { path: '/tour-guide/promotions', icon: FiTag, label: 'Promotions' },
-    {
-      path: '/tour-guide/chat',
-      icon: FiMessageSquare,
-      label: 'Messages',
-      badge: 3
-    },
+    // {
+    //   path: '/tour-guide/chat',
+    //   icon: FiMessageSquare,
+    //   label: 'Messages',
+    //   badge: 3
+    // },
     { path: '/tour-guide/reviews', icon: FiStar, label: 'Reviews & Ratings' },
     { path: '/tour-guide/settings', icon: FiSettings, label: 'Settings' },
   ];
@@ -136,10 +136,10 @@ const SidebarTourGuide = () => {
             )}
           </div>
           
-          <div className="flex flex-col justify-center min-w-0 flex-1">
-            <h1 className="text-lg font-semibold text-black leading-tight font-poppins truncate">
+          <div className="flex flex-col justify-center min-w-0 flex-1 ">
+            <p className="text-lg font-semibold text-black leading-tight font-poppins truncate">
               {displayName}
-            </h1>
+            </p>
             <p className="text-xs text-black/80 leading-tight font-poppins truncate">
               {displayEmail}
             </p>
