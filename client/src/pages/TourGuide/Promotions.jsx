@@ -1,197 +1,103 @@
-import React, { useState, useRef } from 'react';
-import { Plus, Edit2, Trash2, Upload, Calendar, Eye, EyeOff, Star, X, Check, Clock, CreditCard, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Calendar, Eye, EyeOff, Star, CreditCard, Check, Clock, AlertCircle } from 'lucide-react';
 import Sidebar from '../../components/SidebarTourGuide';
-import PaymentModal from './Payment'; // Import the payment modal
+import PaymentModal from './Payment';
+import InsertEditPromotion from './InsertEditPromotion';
+import PromotionService from '../../api_service/PromotionService';
 
 const Promotions = () => {
-  const [promotions, setPromotions] = useState([
-    {
-      id: 1,
-      title: "Anuradhapura Cultural Visit",
-      description: "Explore ancient ruins and sacred temples in the heart of Sri Lanka's first kingdom.",
-      image: "https://images.unsplash.com/photo-1659244352464-75e539618056?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YW51cmFkaGFwdXJhfGVufDB8fDB8fHww",
-      discount: 30,
-      validFrom: "2025-06-01",
-      validTo: "2025-08-31",
-      isActive: true,
-      status: "advertised",
-    },
-    {
-      id: 2,
-      title: "Sigiriya & Dambulla Adventure",
-      description: "Discover Sri Lanka’s iconic rock fortress and marvel at the stunning cave temple art.",
-      image: "https://plus.unsplash.com/premium_photo-1730145749791-28fc538d7203?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c2lnaXJpeWF8ZW58MHx8MHx8fDA%3D",
-      discount: 15,
-      validFrom: "2025-07-01",
-      validTo: "2025-12-31",
-      isActive: true,
-      status: "advertised",
-    },
-    {
-      id: 3,
-      title: "Batticaloa Lagoon Exploration",
-      description: "Enjoy serene boat rides and uncover the cultural charm of Batticaloa’s lagoon-side heritage.",
-      image: "https://plus.unsplash.com/premium_photo-1678131188332-693a503680ae?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8YmF0dGljYWxvYXxlbnwwfHwwfHx8MA%3D%3D",
-      discount: 25,
-      validFrom: "2025-05-15",
-      validTo: "2025-07-15",
-      isActive: false,
-      status: "approved",
-    },
-    {
-      id: 4,
-      title: "Mirissa Whale Watching",
-      description: "Set sail into the Indian Ocean for a thrilling encounter with majestic blue whales off the coast of Mirissa.",
-      image: "https://images.unsplash.com/photo-1475318681864-ef1966c3cbb7?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      discount: 20,
-      validFrom: "2025-12-01",
-      validTo: "2025-12-31",
-      isActive: true,
-      status: "approved",
-    },
-    {
-      id: 5,
-      title: "Early Bird Special",
-      description: "Book 30 days in advance and save big on your stay",
-      image: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&h=250&fit=crop",
-      discount: 35,
-      validFrom: "2025-08-01",
-      validTo: "2025-09-30",
-      isActive: false,
-      status: "requested",
-    },
-    {
-      id: 6,
-      title: "Corporate Event Package",
-      description: "Special rates for corporate events and conferences",
-      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=250&fit=crop",
-      discount: 18,
-      validFrom: "2025-10-01",
-      validTo: "2025-11-30",
-      isActive: false,
-      status: "rejected",
-    },
-    {
-      id: 7,
-      title: "Anniversary Celebration",
-      description: "Celebrate your special day with our romantic package",
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=250&fit=crop",
-      discount: 40,
-      validFrom: "2025-02-01",
-      validTo: "2025-02-28",
-      isActive: false,
-      status: "rejected",
-    }
-  ]);
-
+  const [promotions, setPromotions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPromotionForPayment, setSelectedPromotionForPayment] = useState(null);
   const [editingPromotion, setEditingPromotion] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    image: '',
-    discount: '',
-    validFrom: '',
-    validTo: '',
-    isActive: true
-  });
-  
-  const fileInputRef = useRef(null);
 
-  // Filter promotions by status
-  const approvedPromotions = promotions.filter(promotion => promotion.status === 'approved');
-  const advertisedPromotions = promotions.filter(promotion => promotion.status === 'advertised');
-  const requestedPromotions = promotions.filter(promotion => promotion.status === 'requested');
-  const rejectedPromotions = promotions.filter(promotion => promotion.status === 'rejected');
+  // Get service provider ID from localStorage or context (adjust based on your auth setup)
+  const serviceProviderId = localStorage.getItem('serviceProviderId') || '33'; // Fallback to 33 for demo
+
+  // Fetch promotions from backend
+  const fetchPromotions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await PromotionService.getPromotionsByServiceProviderId(serviceProviderId);
+      setPromotions(data);
+    } catch (err) {
+      console.error('Error fetching promotions:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPromotions();
+  }, [serviceProviderId]);
+
+  // Filter promotions by status (convert backend status to lowercase for compatibility)
+  const approvedPromotions = promotions.filter(promotion => 
+    promotion.status?.toLowerCase() === 'approved'
+  );
+  const advertisedPromotions = promotions.filter(promotion => 
+    promotion.status?.toLowerCase() === 'advertised'
+  );
+  const requestedPromotions = promotions.filter(promotion => 
+    promotion.status?.toLowerCase() === 'requested'
+  );
+  const rejectedPromotions = promotions.filter(promotion => 
+    promotion.status?.toLowerCase() === 'rejected'
+  );
 
   // Combined approved and advertised for display
   const managedPromotions = promotions.filter(promotion => 
-    promotion.status === 'approved' || promotion.status === 'advertised'
+    promotion.status?.toLowerCase() === 'approved' || 
+    promotion.status?.toLowerCase() === 'advertised'
   );
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData(prev => ({ ...prev, image: e.target.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const openModal = (promotion = null) => {
-    if (promotion) {
-      setEditingPromotion(promotion);
-      setFormData({
-        title: promotion.title,
-        description: promotion.description,
-        image: promotion.image,
-        discount: promotion.discount,
-        validFrom: promotion.validFrom,
-        validTo: promotion.validTo,
-        isActive: promotion.isActive
-      });
-    } else {
-      setEditingPromotion(null);
-      setFormData({
-        title: '',
-        description: '',
-        image: '',
-        discount: '',
-        validFrom: '',
-        validTo: '',
-        isActive: true
-      });
-    }
+    setEditingPromotion(promotion);
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setEditingPromotion(null);
-    setFormData({
-      title: '',
-      description: '',
-      image: '',
-      discount: '',
-      validFrom: '',
-      validTo: '',
-      isActive: true
-    });
   };
 
-  const handleSubmit = () => {
-    if (!formData.title || !formData.description || !formData.discount || !formData.validFrom || !formData.validTo) {
-      alert('Please fill in all required fields');
-      return;
+  const handleSubmit = async (formData, isEditing) => {
+    try {
+      if (isEditing) {
+        // Update existing promotion - you'll need to implement update in your service
+        // For now, we'll delete and create new (replace with proper update when available)
+        await PromotionService.deletePromotion(editingPromotion.id);
+        const newPromotion = await PromotionService.createPromotion({
+          ...formData,
+          serviceProviderId: parseInt(serviceProviderId)
+        });
+        
+        setPromotions(prev => prev.map(promo => 
+          promo.id === editingPromotion.id ? newPromotion : promo
+        ));
+        
+        alert('Promotion updated successfully!');
+      } else {
+        // Add new promotion
+        const newPromotion = await PromotionService.createPromotion({
+          ...formData,
+          serviceProviderId: parseInt(serviceProviderId)
+        });
+        
+        setPromotions(prev => [...prev, newPromotion]);
+        alert('Promotion submitted for admin approval!');
+      }
+      
+      closeModal();
+    } catch (err) {
+      console.error('Error saving promotion:', err);
+      alert(`Error: ${err.message}`);
     }
-    
-    if (editingPromotion) {
-      // Update existing promotion
-      setPromotions(prev => prev.map(promo => 
-        promo.id === editingPromotion.id 
-          ? { ...promo, ...formData }
-          : promo
-      ));
-    } else {
-      // Add new promotion (always starts as "requested" - waiting for admin approval)
-      const newPromotion = {
-        id: Date.now(),
-        ...formData,
-        status: 'requested'
-      };
-      setPromotions(prev => [...prev, newPromotion]);
-      alert('Promotion submitted for admin approval!');
-    }
-    
-    closeModal();
   };
 
   // Open payment modal
@@ -204,7 +110,7 @@ const Promotions = () => {
   const handlePaymentSuccess = (paymentData) => {
     setPromotions(prev => prev.map(promo => 
       promo.id === paymentData.promotionId 
-        ? { ...promo, status: 'advertised' } 
+        ? { ...promo, status: 'ADVERTISED' } 
         : promo
     ));
     
@@ -215,20 +121,45 @@ const Promotions = () => {
     alert(`Payment successful! Your promotion is now being advertised with the ${paymentData.plan} plan.`);
   };
 
-  const togglePromotionStatus = (id) => {
-    setPromotions(prev => prev.map(promo => 
-      promo.id === id ? { ...promo, isActive: !promo.isActive } : promo
-    ));
+  const togglePromotionStatus = async (id) => {
+    try {
+      // Find the promotion to toggle
+      const promotion = promotions.find(p => p.id === id);
+      const updatedStatus = !promotion.isActive;
+      
+      // You'll need to implement an update endpoint in your service
+      // For now, we'll just update locally
+      setPromotions(prev => prev.map(promo => 
+        promo.id === id ? { ...promo, isActive: updatedStatus } : promo
+      ));
+      
+      // If you had an update endpoint, you would call it here:
+      // await PromotionService.updatePromotion(id, { isActive: updatedStatus });
+      
+    } catch (err) {
+      console.error('Error toggling promotion status:', err);
+      alert(`Error: ${err.message}`);
+      // Revert on error
+      fetchPromotions();
+    }
   };
 
-  const deletePromotion = (id) => {
+  const deletePromotion = async (id) => {
     if (window.confirm('Are you sure you want to delete this promotion?')) {
-      setPromotions(prev => prev.filter(promo => promo.id !== id));
+      try {
+        await PromotionService.deletePromotion(id);
+        setPromotions(prev => prev.filter(promo => promo.id !== id));
+        alert('Promotion deleted successfully!');
+      } catch (err) {
+        console.error('Error deleting promotion:', err);
+        alert(`Error: ${err.message}`);
+      }
     }
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
       case 'approved':
         return 'bg-blue-100 text-blue-800';
       case 'advertised':
@@ -243,7 +174,8 @@ const Promotions = () => {
   };
 
   const getStatusLabel = (status) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
       case 'approved':
         return 'Approved';
       case 'advertised':
@@ -256,6 +188,47 @@ const Promotions = () => {
         return 'Unknown';
     }
   };
+
+  // Format date for display (remove time part if present)
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return dateString.split('T')[0];
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen">
+        <Sidebar/>
+        <div className="flex-1 p-6 bg-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0088cc] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading promotions...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen">
+        <Sidebar/>
+        <div className="flex-1 p-6 bg-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading promotions</h3>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <button
+              onClick={fetchPromotions}
+              className="bg-[#0088cc] text-white px-4 py-2 rounded-lg hover:bg-[#0077bb] transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen">
@@ -406,7 +379,7 @@ const Promotions = () => {
                       {promotion.discount}% OFF
                     </span>
                   </div>
-                  {promotion.status === 'advertised' && (
+                  {promotion.status?.toLowerCase() === 'advertised' && (
                     <div className="absolute bottom-3 right-3">
                       <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
                         <CreditCard className="w-3 h-3" />
@@ -431,12 +404,12 @@ const Promotions = () => {
                   {/* Date Range */}
                   <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
                     <Calendar className="w-4 h-4" />
-                    <span>{promotion.validFrom} to {promotion.validTo}</span>
+                    <span>{formatDate(promotion.validFrom)} to {formatDate(promotion.validTo)}</span>
                   </div>
 
                   {/* Actions based on status */}
                   <div className="space-y-2">
-                    {promotion.status === 'approved' && (
+                    {promotion.status?.toLowerCase() === 'approved' && (
                       <button
                         onClick={() => openPaymentModal(promotion)}
                         className="w-full bg-[#0088cc] text-white px-3 py-2 rounded-lg hover:bg-[#0077bb] transition-colors flex items-center justify-center space-x-1 font-medium"
@@ -454,7 +427,7 @@ const Promotions = () => {
                         <Edit2 className="w-4 h-4" />
                         <span>Edit</span>
                       </button>
-                      {promotion.status === 'advertised' && (
+                      {promotion.status?.toLowerCase() === 'advertised' && (
                         <button
                           onClick={() => togglePromotionStatus(promotion.id)}
                           className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-1 ${
@@ -503,160 +476,12 @@ const Promotions = () => {
         </div>
 
         {/* Create/Edit Promotion Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    {editingPromotion ? 'Edit Promotion' : 'Create New Promotion'}
-                  </h2>
-                  <button
-                    onClick={closeModal}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-6 space-y-6">
-                {/* Title */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Promotion Title</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
-                    placeholder="Enter promotion title"
-                    required
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none resize-none"
-                    placeholder="Describe your promotion"
-                    required
-                  />
-                </div>
-
-                {/* Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Promotion Image</label>
-                  <div 
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#0088cc] transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {formData.image ? (
-                      <img src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-lg mb-2" />
-                    ) : (
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                    )}
-                    <p className="text-gray-600">Click to upload image</p>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </div>
-
-                {/* Discount & Dates */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Discount (%)</label>
-                    <input
-                      type="number"
-                      value={formData.discount}
-                      onChange={(e) => handleInputChange('discount', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
-                      placeholder="0"
-                      min="0"
-                      max="100"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Valid From</label>
-                    <input
-                      type="date"
-                      value={formData.validFrom}
-                      onChange={(e) => handleInputChange('validFrom', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Valid To</label>
-                    <input
-                      type="date"
-                      value={formData.validTo}
-                      onChange={(e) => handleInputChange('validTo', e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Active Status */}
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                    className="w-4 h-4 text-[#0088cc] border-gray-300 rounded focus:ring-[#0088cc]"
-                  />
-                  <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
-                    Make promotion active immediately (after approval)
-                  </label>
-                </div>
-
-                {/* Info Message */}
-                {!editingPromotion && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start">
-                      <Clock className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-medium text-blue-800">Admin Approval Required</h4>
-                        <p className="text-xs text-blue-700 mt-1">
-                          Your promotion will be submitted for admin approval. You'll be able to manage it once approved.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Submit Buttons */}
-                <div className="flex space-x-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    className="flex-1 px-4 py-2 bg-[#0088cc] text-white rounded-lg hover:bg-[#0077bb] transition-colors"
-                  >
-                    {editingPromotion ? 'Update Promotion' : 'Submit for Approval'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <InsertEditPromotion
+          showModal={showModal}
+          closeModal={closeModal}
+          editingPromotion={editingPromotion}
+          handleSubmit={handleSubmit}
+        />
 
         {/* Payment Modal */}
         <PaymentModal
