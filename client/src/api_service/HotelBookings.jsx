@@ -1,7 +1,5 @@
 const HotelBookingService = {
-  //base api url
-  BASE_URL:
-    "https://serviceprovidersservice-production-8f10.up.railway.app/service/hotel-profiles",
+  BASE_URL: "https://serviceprovidersservice-production-8f10.up.railway.app/service/room-bookings",
 
   getAuthHeaders() {
     const accessToken = localStorage.getItem("accessToken");
@@ -39,24 +37,55 @@ const HotelBookingService = {
     }
   },
 
-    //fetch all bookings for a hotel
-    async fetchHotelBookings(hotelId) {
-      try {
-        const response = await fetch(
-          `${this.BASE_URL}/${hotelId}/bookings`,
-          {
-            method: "GET",
-            headers: this.getAuthHeaders(),
-          }
-        );
-        const responseData = await this.handleResponse(response);
-        console.log("Fetched hotel bookings:", responseData);
-        return responseData;
-      } catch (error) {
-        console.error("Error fetching hotel bookings:", error);
-        throw error;
-      }
-    },
+  // Get bookings by service provider (hotel)
+  async getBookingsByServiceProvider(serviceProviderId) {
+    const response = await fetch(`${this.BASE_URL}/provider/${serviceProviderId}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  },
 
+  // Get booking by ID
+  async getBookingById(bookingId) {
+    const response = await fetch(`${this.BASE_URL}/${bookingId}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  },
+
+  // Cancel a booking
+  async cancelBooking(bookingId, cancellationReason = null) {
+    const body = cancellationReason ? 
+      { cancellationReason } : 
+      {};
     
+    const response = await fetch(`${this.BASE_URL}/${bookingId}/cancel`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+    return this.handleResponse(response);
+  },
+
+  // Confirm a booking
+  async confirmBooking(bookingId) {
+    const response = await fetch(`${this.BASE_URL}/${bookingId}/confirm`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  },
+
+  // Complete a booking (check-out)
+  async completeBooking(bookingId) {
+    const response = await fetch(`${this.BASE_URL}/${bookingId}/complete`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  }
 };
+
+export default HotelBookingService;

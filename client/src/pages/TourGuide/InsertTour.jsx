@@ -169,7 +169,7 @@ const InsertTour = ({ showModal, setShowModal, onTourAdded }) => {
       places: placesArray,
       highlights: highlightsArray,
       status: formData.status.toUpperCase(),
-      rating: 0,
+      rating: 0 || "5", 
       maxPeople: parseInt(formData.maxPeople),
       minPeople: parseInt(formData.minPeople),
       aboutTour: formData.aboutTour.trim(),

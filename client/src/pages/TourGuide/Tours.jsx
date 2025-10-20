@@ -5,6 +5,7 @@ import EditTour from "./EditTour";
 import SingleTour from "./SingleTour";
 import AddPastTourPhotos from "./AddPastTourPhotos";
 import TourPackageService from "../../api_service/TourPackageService";
+import TourPackageReviewService from "../../api_service/TourPackageReviewService";
 
 const Tours = () => {
   const [showInsertModal, setShowInsertModal] = useState(false);
@@ -22,6 +23,7 @@ const Tours = () => {
   const [priceFilter, setPriceFilter] = useState("all");
 
   const [tours, setTours] = useState([]);
+  const [tourRatings, setTourRatings] = useState({}); // Store ratings by tourId
 
   const statusColors = {
     AVAILABLE: "bg-green-100 text-green-800",
@@ -54,6 +56,25 @@ const Tours = () => {
     fetchTours();
   }, []);
 
+  // Fetch ratings for all tours
+  const fetchTourRatings = async (tourList) => {
+    const ratings = {};
+    
+    // Fetch ratings for each tour
+    const ratingPromises = tourList.map(async (tour) => {
+      try {
+        const averageRating = await TourPackageReviewService.getAverageRating(tour.id);
+        ratings[tour.id] = averageRating;
+      } catch (error) {
+        console.error(`Error fetching rating for tour ${tour.id}:`, error);
+        ratings[tour.id] = 0; // Default to 0 if error
+      }
+    });
+
+    await Promise.all(ratingPromises);
+    setTourRatings(ratings);
+  };
+
   const fetchTours = async () => {
     try {
       setLoading(true);
@@ -79,7 +100,7 @@ const Tours = () => {
         places: tour.places || [],
         highlights: tour.highlights || [],
         status: tour.status?.toLowerCase() || "available",
-        rating: tour.rating,
+        rating: tour.rating, // Keep original rating as fallback
         maxPeople: tour.maxPeople,
         minPeople: tour.minPeople,
         aboutTour: tour.aboutTour,
@@ -93,12 +114,21 @@ const Tours = () => {
       }));
       
       setTours(transformedTours);
+      
+      // Fetch ratings for all tours
+      await fetchTourRatings(transformedTours);
+      
     } catch (err) {
       console.error("Error fetching tours:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Get rating for a specific tour
+  const getTourRating = (tourId) => {
+    return tourRatings[tourId] || 0;
   };
 
   // Filter tours based on search and filters
@@ -160,6 +190,10 @@ const Tours = () => {
       }));
       
       setTours(transformedTours);
+      
+      // Refresh ratings as well
+      await fetchTourRatings(transformedTours);
+      
       console.log('Tours refreshed after adding photos');
     } catch (error) {
       console.error('Error refreshing tours:', error);
@@ -175,6 +209,14 @@ const Tours = () => {
     try {
       await TourPackageService.deleteTourPackage(currentTour.id);
       setTours((prev) => prev.filter((tour) => tour.id !== currentTour.id));
+      
+      // Remove rating from state
+      setTourRatings(prev => {
+        const newRatings = { ...prev };
+        delete newRatings[currentTour.id];
+        return newRatings;
+      });
+      
       setDeleteModal(false);
       setCurrentTour(null);
     } catch (error) {
@@ -359,235 +401,238 @@ const Tours = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTours.map((tour) => (
-                <div
-                  key={tour.id}
-                  className="bg-white rounded-xl overflow-hidden border border-gray-300 shadow-lg hover:shadow-xl transition-shadow"
-                >
-                  {/* Clickable Image */}
-                  <div 
-                    className="h-48 overflow-hidden relative cursor-pointer"
-                    onClick={() => setSelectedTour(tour)}
+              {filteredTours.map((tour) => {
+                const tourRating = getTourRating(tour.id);
+                return (
+                  <div
+                    key={tour.id}
+                    className="bg-white rounded-xl overflow-hidden border border-gray-300 shadow-lg hover:shadow-xl transition-shadow"
                   >
-                    <img
-                      src={tour.image}
-                      alt={tour.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                    {tour.discount > 0 && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
-                        {formatDiscount(tour.discount)}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-5">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-semibold text-gray-800">
-                        {tour.name}
-                      </h3>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          statusColors[tour.status]
-                        }`}
-                      >
-                        {statusLabels[tour.status]}
-                      </span>
+                    {/* Clickable Image */}
+                    <div 
+                      className="h-48 overflow-hidden relative cursor-pointer"
+                      onClick={() => setSelectedTour(tour)}
+                    >
+                      <img
+                        src={tour.image}
+                        alt={tour.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                      {tour.discount > 0 && (
+                        <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+                          {formatDiscount(tour.discount)}
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="flex items-center">
-                        <svg
-                          className="w-4 h-4 text-yellow-400 mr-1"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
+                    <div className="p-5">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-xl font-semibold text-gray-800">
+                          {tour.name}
+                        </h3>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            statusColors[tour.status]
+                          }`}
                         >
-                          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                        </svg>
-                        <span className="text-sm font-medium text-gray-600">
-                          {tour.rating}
+                          {statusLabels[tour.status]}
                         </span>
                       </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                          />
-                        </svg>
-                        {tour.minPeople}-{tour.maxPeople} people
-                      </div>
-                    </div>
 
-                    <div className="flex items-center text-gray-600 mb-3">
-                      <div className="flex flex-col">
-                        {tour.discount > 0 ? (
-                          <>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-gray-800 text-lg">
-                                {formatPrice(tour.finalPrice)}
-                              </span>
-                              <span className="text-sm text-gray-500 line-through">
-                                {formatPrice(tour.originalPrice)}
-                              </span>
-                            </div>
-                            <div className="text-xs text-green-600 font-medium">
-                              You save Rs.
-                              {(
-                                tour.originalPrice - tour.finalPrice
-                              ).toLocaleString("en-IN")}
-                            </div>
-                          </>
-                        ) : (
-                          <span className="font-medium text-gray-800 text-lg">
-                            {formatPrice(tour.finalPrice)}
-                          </span>
-                        )}
-                        <span className="text-xs text-gray-500">per person</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        {tour.duration} tour
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        {tour.places?.length || 0} location
-                        {(tour.places?.length || 0) > 1 ? "s" : ""}
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        Tour Highlights
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {tour.highlights?.slice(0, 3).map((highlight, index) => (
-                          <span
-                            key={index}
-                            className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center">
+                          <svg
+                            className="w-4 h-4 text-yellow-400 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            {highlight}
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                          </svg>
+                          <span className="text-sm font-medium text-gray-600">
+                            {tourRating > 0 ? tourRating : 'No ratings'}
                           </span>
-                        ))}
-                        {(tour.highlights?.length || 0) > 3 && (
-                          <span className="text-xs text-gray-500">
-                            +{(tour.highlights?.length || 0) - 3} more
-                          </span>
-                        )}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                            />
+                          </svg>
+                          {tour.minPeople}-{tour.maxPeople} people
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Add Past Tour Photos Button */}
-                    <div className="mb-4">
-                      <button
-                        onClick={() => handleAddTourPhotos(tour)}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        Add Past Tour Photos
-                        {(tour.pastTourPhotos?.length || 0) > 0 && (
-                          <span className="bg-purple-800 text-xs px-2 py-1 rounded-full">
-                            {tour.pastTourPhotos?.length || 0}
-                          </span>
-                        )}
-                      </button>
-                    </div>
+                      <div className="flex items-center text-gray-600 mb-3">
+                        <div className="flex flex-col">
+                          {tour.discount > 0 ? (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-800 text-lg">
+                                  {formatPrice(tour.finalPrice)}
+                                </span>
+                                <span className="text-sm text-gray-500 line-through">
+                                  {formatPrice(tour.originalPrice)}
+                                </span>
+                              </div>
+                              <div className="text-xs text-green-600 font-medium">
+                                You save Rs.
+                                {(
+                                  tour.originalPrice - tour.finalPrice
+                                ).toLocaleString("en-IN")}
+                              </div>
+                            </>
+                          ) : (
+                            <span className="font-medium text-gray-800 text-lg">
+                              {formatPrice(tour.finalPrice)}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-500">per person</span>
+                        </div>
+                      </div>
 
-                    <div className="flex justify-between">
-                      <button
-                        onClick={() => handleEditTour(tour)}
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
-                      >
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <svg
+                            className="w-4 h-4 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          {tour.duration} tour
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <svg
+                            className="w-4 h-4 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          {tour.places?.length || 0} location
+                          {(tour.places?.length || 0) > 1 ? "s" : ""}
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          Tour Highlights
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {tour.highlights?.slice(0, 3).map((highlight, index) => (
+                            <span
+                              key={index}
+                              className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+                            >
+                              {highlight}
+                            </span>
+                          ))}
+                          {(tour.highlights?.length || 0) > 3 && (
+                            <span className="text-xs text-gray-500">
+                              +{(tour.highlights?.length || 0) - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Add Past Tour Photos Button */}
+                      <div className="mb-4">
+                        <button
+                          onClick={() => handleAddTourPhotos(tour)}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(tour)}
-                        className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center"
-                      >
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          Add Past Tour Photos
+                          {(tour.pastTourPhotos?.length || 0) > 0 && (
+                            <span className="bg-purple-800 text-xs px-2 py-1 rounded-full">
+                              {tour.pastTourPhotos?.length || 0}
+                            </span>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <button
+                          onClick={() => handleEditTour(tour)}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                        Delete
-                      </button>
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(tour)}
+                          className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center"
+                        >
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {filteredTours.length === 0 && tours.length > 0 && (

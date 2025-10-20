@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Lock, CheckCircle, AlertCircle, Calendar, DollarSign } from 'lucide-react';
+import PaymentService from '../../api_service/PaymentService';
 
 const PaymentModal = ({ isOpen, onClose, promotion, onPaymentSuccess }) => {
   const [paymentData, setPaymentData] = useState({
@@ -20,9 +21,9 @@ const PaymentModal = ({ isOpen, onClose, promotion, onPaymentSuccess }) => {
 
   // Advertisement pricing (you can customize these)
   const pricingPlans = {
-    basic: { name: 'Basic Plan', price: 1999, duration: '7 days', features: ['Standard visibility'] },
-    premium: { name: 'Premium Plan', price: 4999, duration: '30 days', features: ['High visibility', 'Featured placement',] },
-    featured: { name: 'Featured Plan', price: 9999, duration: '60 days', features: ['Maximum visibility', 'Top placement'] }
+    basic: { name: 'Basic Plan', price: 2359, duration: '7 days', features: ['Standard visibility'] },
+    premium: { name: 'Premium Plan', price: 5899, duration: '30 days', features: ['High visibility', 'Featured placement'] },
+    featured: { name: 'Featured Plan', price: 11799, duration: '60 days', features: ['Maximum visibility', 'Top placement'] }
   };
 
   const [selectedPlan, setSelectedPlan] = useState('premium');
@@ -99,10 +100,23 @@ const PaymentModal = ({ isOpen, onClose, promotion, onPaymentSuccess }) => {
     setIsProcessing(true);
 
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Prepare payment data for backend
+      const backendPaymentData = {
+        promotionId: promotion.id,
+        plan: selectedPlan,
+        cardNumber: paymentData.cardNumber.replace(/\s/g, ''),
+        expiryDate: paymentData.expiryDate,
+        cvv: paymentData.cvv,
+        cardholderName: paymentData.cardholderName,
+        billingAddress: paymentData.billingAddress,
+        city: paymentData.city,
+        zipCode: paymentData.zipCode
+      };
+
+      // Call backend payment API
+      const response = await PaymentService.processPayment(backendPaymentData);
       
-      // Simulate successful payment
+      // Payment successful
       setPaymentComplete(true);
       
       // Call success callback after a short delay
@@ -111,7 +125,7 @@ const PaymentModal = ({ isOpen, onClose, promotion, onPaymentSuccess }) => {
           promotionId: promotion.id,
           plan: selectedPlan,
           amount: pricingPlans[selectedPlan].price,
-          transactionId: 'TXN' + Date.now()
+          transactionId: response.transactionId || 'TXN' + Date.now()
         });
         onClose();
         setPaymentComplete(false);
@@ -120,7 +134,7 @@ const PaymentModal = ({ isOpen, onClose, promotion, onPaymentSuccess }) => {
 
     } catch (error) {
       setIsProcessing(false);
-      setErrors({ general: 'Payment failed. Please try again.' });
+      setErrors({ general: error.message || 'Payment failed. Please try again.' });
     }
   };
 
