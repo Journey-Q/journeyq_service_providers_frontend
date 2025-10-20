@@ -1,123 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/SidebarHotel';
 import { FiDollarSign, FiCalendar, FiUser, FiInfo, FiFilter, FiCreditCard, FiMail, FiPhone } from 'react-icons/fi';
+import PaymentHistoryService from '../../api_service/PaymentHistoryService';
 
 const PaymentHistory = () => {
-  // Sample payment data - only completed transactions with booking IDs
-  const allPayments = [
-    {
-      id: 'PMT-2025-0615-001',
-      bookingId: 'BK-2025-0615-001',
-      guest: { 
-        name: 'John D. Silva', 
-        room: 'Deluxe Suite #302',
-        email: 'john.silva@example.com',
-        phone: '+94 77 123 4567',
-        address: 'No. 15, Galle Road, Colombo 03'
-      },
-      date: 'June 15, 2025',
-      time: '10:45 AM',
-      amount: 45000,
-      method: 'Credit Card (VISA)',
-      status: 'completed',
-      invoice: '#INV-2025-0615-001',
-      cardLastFour: '4532',
-      transactionId: 'TXN-901234567',
-      checkIn: 'June 15, 2025',
-      checkOut: 'June 18, 2025',
-      nights: 3
-    },
-    {
-      id: 'PMT-2025-0528-002',
-      bookingId: 'BK-2025-0528-002',
-      guest: { 
-        name: 'Sarah Johnson', 
-        room: 'Premium Room #105',
-        email: 'sarah.j@example.com',
-        phone: '+94 75 888 9999',
-        address: 'No. 123, Hill Street, Nuwara Eliya'
-      },
-      date: 'May 28, 2025',
-      time: '2:30 PM',
-      amount: 27500,
-      method: 'Credit Card (VISA)',
-      status: 'completed',
-      invoice: '#INV-2025-0528-002',
-      cardLastFour: '1234',
-      transactionId: 'TXN-812345678',
-      checkIn: 'May 28, 2025',
-      checkOut: 'May 30, 2025',
-      nights: 2
-    },
-    {
-      id: 'PMT-2025-0405-003',
-      bookingId: 'BK-2025-0405-003',
-      guest: { 
-        name: 'Michael Brown', 
-        room: 'Family Suite #210',
-        email: 'michael.b@example.com',
-        phone: '+94 78 246 8135',
-        address: 'No. 67, Main Street, Galle'
-      },
-      date: 'April 5, 2025',
-      time: '11:20 AM',
-      amount: 38000,
-      method: 'Bank Transfer',
-      status: 'completed',
-      invoice: '#INV-2025-0405-003',
-      bankReference: 'BT-567890123',
-      transactionId: 'TXN-723456789',
-      checkIn: 'April 5, 2025',
-      checkOut: 'April 10, 2025',
-      nights: 5
-    },
-    {
-      id: 'PMT-2025-0320-004',
-      bookingId: 'BK-2025-0320-004',
-      guest: { 
-        name: 'Alice M. Smith', 
-        room: 'Standard Double #215',
-        email: 'alice.smith@example.com',
-        phone: '+94 71 987 6543',
-        address: 'No. 42, Kandy Road, Peradeniya'
-      },
-      date: 'March 20, 2025',
-      time: '3:20 PM',
-      amount: 30000,
-      method: 'Bank Transfer',
-      status: 'completed',
-      invoice: '#INV-2025-0320-004',
-      bankReference: 'BT-678901234',
-      transactionId: 'TXN-634567890',
-      checkIn: 'March 20, 2025',
-      checkOut: 'March 23, 2025',
-      nights: 3
-    },
-    {
-      id: 'PMT-2025-0215-005',
-      bookingId: 'BK-2025-0215-005',
-      guest: { 
-        name: 'Robert K. Lee', 
-        room: 'Executive Suite #401',
-        email: 'robert.lee@example.com',
-        phone: '+94 76 555 1234',
-        address: 'No. 88, Negombo Road, Katunayake'
-      },
-      date: 'February 15, 2025',
-      time: '9:15 AM',
-      amount: 55000,
-      method: 'Credit Card (MasterCard)',
-      status: 'completed',
-      invoice: '#INV-2025-0215-005',
-      cardLastFour: '8765',
-      transactionId: 'TXN-545678901',
-      checkIn: 'February 15, 2025',
-      checkOut: 'February 20, 2025',
-      nights: 5
-    }
-  ];
-
-  // State for filters and popup
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [monthFilter, setMonthFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState('2025');
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -141,8 +30,33 @@ const PaymentHistory = () => {
 
   const years = ['2025', '2024', '2023'];
 
+  // Fetch payment history on component mount
+  useEffect(() => {
+    const fetchPaymentHistory = async () => {
+      try {
+        setLoading(true);
+        const serviceProvider = localStorage.getItem('serviceProvider');
+        const serviceProviderId = serviceProvider ? JSON.parse(serviceProvider).id : null;
+        
+        if (!serviceProviderId) {
+          throw new Error('Service provider ID not found');
+        }
+
+        const paymentData = await PaymentHistoryService.getPaymentHistoryByServiceProviderId(serviceProviderId);
+        setPayments(paymentData);
+      } catch (err) {
+        console.error('Error fetching payment history:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPaymentHistory();
+  }, []);
+
   // Filter payments based on selected filters (only completed transactions)
-  const filteredPayments = allPayments.filter(payment => {
+  const filteredPayments = payments.filter(payment => {
     const paymentDate = new Date(payment.date);
     const paymentMonth = String(paymentDate.getMonth() + 1).padStart(2, '0');
     const paymentYear = String(paymentDate.getFullYear());
@@ -156,6 +70,28 @@ const PaymentHistory = () => {
   const formatAmount = (cents) => {
     return `LKR ${(cents / 100).toFixed(2)}`;
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <main className="flex-1 p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-gray-600">Loading payment history...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <main className="flex-1 p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-red-600">Error: {error}</div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -207,8 +143,6 @@ const PaymentHistory = () => {
             <table className="w-full">
               <thead className="bg-grey-600 text-[#2953A6] border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left font-medium">Payment ID</th>
-                  <th className="px-6 py-4 text-left font-medium">Booking ID</th>
                   <th className="px-6 py-4 text-left font-medium">Guest Details</th>
                   <th className="px-6 py-4 text-left font-medium">Date & Time</th>
                   <th className="px-6 py-4 text-left font-medium">Amount</th>
@@ -219,12 +153,6 @@ const PaymentHistory = () => {
                 {filteredPayments.length > 0 ? (
                   filteredPayments.map((payment) => (
                     <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-sm text-[#2953A6]">
-                        {payment.id}
-                      </td>
-                      <td className="px-6 py-4 font-mono text-sm text-green-600">
-                        {payment.bookingId}
-                      </td>
                       <td className="px-6 py-4">
                         <div className="font-medium">{payment.guest.name}</div>
                         <div className="text-sm text-gray-500">{payment.guest.room}</div>
@@ -255,7 +183,7 @@ const PaymentHistory = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
                       No completed payments found matching your filters
                     </td>
                   </tr>
@@ -301,7 +229,8 @@ const PaymentHistory = () => {
 
                     {/* Payment ID */}
                     <div className="mb-4 p-3 bg-[#2953A6]/10 rounded-lg">
-                      <div className="font-mono text-[#2953A6] font-semibold">{payment.id}</div>
+                      <div className="text-sm text-gray-600">Payment ID</div>
+                      <div className="font-mono text-[#2953A6] font-semibold">{payment.paymentId}</div>
                     </div>
 
                     {/* Related Booking */}
@@ -350,12 +279,44 @@ const PaymentHistory = () => {
                           <div className="font-semibold text-gray-800">{payment.date}</div>
                         </div>
                         
+                        <div>
+                          <span className="text-sm text-gray-600">Payment Time:</span>
+                          <div className="font-semibold text-gray-800">{payment.time}</div>
+                        </div>
                         
                         <div>
                           <span className="text-sm text-gray-600">Amount Paid:</span>
                           <div className="font-bold text-green-600 text-lg">{formatAmount(payment.amount)}</div>
                         </div>
                         
+                        <div>
+                          <span className="text-sm text-gray-600">Payment Method:</span>
+                          <div className="font-semibold text-gray-800">{payment.method}</div>
+                        </div>
+
+                        {payment.cardLastFour && (
+                          <div>
+                            <span className="text-sm text-gray-600">Card Last Four:</span>
+                            <div className="font-semibold text-gray-800">**** {payment.cardLastFour}</div>
+                          </div>
+                        )}
+
+                        {payment.bankReference && (
+                          <div>
+                            <span className="text-sm text-gray-600">Bank Reference:</span>
+                            <div className="font-semibold text-gray-800">{payment.bankReference}</div>
+                          </div>
+                        )}
+
+                        <div>
+                          <span className="text-sm text-gray-600">Transaction ID:</span>
+                          <div className="font-mono text-sm text-gray-800">{payment.transactionId}</div>
+                        </div>
+
+                        <div>
+                          <span className="text-sm text-gray-600">Invoice:</span>
+                          <div className="font-mono text-sm text-gray-800">{payment.invoice}</div>
+                        </div>
                       </div>
                     </div>
 
