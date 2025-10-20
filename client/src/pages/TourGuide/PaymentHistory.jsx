@@ -3,11 +3,10 @@ import Sidebar from '../../components/SidebarTourGuide';
 import { FiDollarSign, FiCalendar, FiUser, FiInfo, FiFilter, FiCreditCard, FiMail, FiPhone } from 'react-icons/fi';
 
 const PaymentHistory = () => {
-  // Sample payment data - only completed transactions with tour IDs
+  // Sample payment data - only completed transactions
   const allPayments = [
     {
       id: 'PMT-2025-0615-001',
-      tourId: 'TR-2025-0615-001',
       guest: { 
         name: 'John D. Silva', 
         tour: 'Sigiriya & Dambulla Day Tour',
@@ -18,10 +17,8 @@ const PaymentHistory = () => {
       date: 'June 15, 2025',
       time: '10:45 AM',
       amount: 45000,
-      method: 'Credit Card (VISA)',
       status: 'completed',
       invoice: '#INV-2025-0615-001',
-      cardLastFour: '4532',
       transactionId: 'TXN-901234567',
       tourDate: 'June 18, 2025',
       participants: 4,
@@ -29,7 +26,6 @@ const PaymentHistory = () => {
     },
     {
       id: 'PMT-2025-0528-002',
-      tourId: 'TR-2025-0528-002',
       guest: { 
         name: 'Sarah Johnson', 
         tour: 'Kandy Cultural Experience',
@@ -40,10 +36,8 @@ const PaymentHistory = () => {
       date: 'May 28, 2025',
       time: '2:30 PM',
       amount: 27500,
-      method: 'Credit Card (VISA)',
       status: 'completed',
       invoice: '#INV-2025-0528-002',
-      cardLastFour: '1234',
       transactionId: 'TXN-812345678',
       tourDate: 'May 30, 2025',
       participants: 2,
@@ -51,7 +45,6 @@ const PaymentHistory = () => {
     },
     {
       id: 'PMT-2025-0405-003',
-      tourId: 'TR-2025-0405-003',
       guest: { 
         name: 'Michael Brown', 
         tour: 'Galle Fort Walking Tour',
@@ -62,10 +55,8 @@ const PaymentHistory = () => {
       date: 'April 5, 2025',
       time: '11:20 AM',
       amount: 38000,
-      method: 'Bank Transfer',
       status: 'completed',
       invoice: '#INV-2025-0405-003',
-      bankReference: 'BT-567890123',
       transactionId: 'TXN-723456789',
       tourDate: 'April 10, 2025',
       participants: 3,
@@ -73,7 +64,6 @@ const PaymentHistory = () => {
     },
     {
       id: 'PMT-2025-0320-004',
-      tourId: 'TR-2025-0320-004',
       guest: { 
         name: 'Alice M. Smith', 
         tour: 'Tea Plantation Tour',
@@ -84,10 +74,8 @@ const PaymentHistory = () => {
       date: 'March 20, 2025',
       time: '3:20 PM',
       amount: 30000,
-      method: 'Bank Transfer',
       status: 'completed',
       invoice: '#INV-2025-0320-004',
-      bankReference: 'BT-678901234',
       transactionId: 'TXN-634567890',
       tourDate: 'March 23, 2025',
       participants: 2,
@@ -95,7 +83,6 @@ const PaymentHistory = () => {
     },
     {
       id: 'PMT-2025-0215-005',
-      tourId: 'TR-2025-0215-005',
       guest: { 
         name: 'Robert K. Lee', 
         tour: 'Whale Watching Expedition',
@@ -106,10 +93,8 @@ const PaymentHistory = () => {
       date: 'February 15, 2025',
       time: '9:15 AM',
       amount: 55000,
-      method: 'Credit Card (MasterCard)',
       status: 'completed',
       invoice: '#INV-2025-0215-005',
-      cardLastFour: '8765',
       transactionId: 'TXN-545678901',
       tourDate: 'February 20, 2025',
       participants: 5,
@@ -214,7 +199,6 @@ const PaymentHistory = () => {
               <thead className="bg-slate-800 text-white">
                 <tr>
                   <th className="px-6 py-4 text-left font-medium">Payment ID</th>
-                  <th className="px-6 py-4 text-left font-medium">Tour ID</th>
                   <th className="px-6 py-4 text-left font-medium">Guest Details</th>
                   <th className="px-6 py-4 text-left font-medium">Date & Time</th>
                   <th className="px-6 py-4 text-left font-medium">Amount</th>
@@ -227,9 +211,6 @@ const PaymentHistory = () => {
                     <tr key={payment.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 font-mono text-sm text-blue-600">
                         {payment.id}
-                      </td>
-                      <td className="px-6 py-4 font-mono text-sm text-green-600">
-                        {payment.tourId}
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-medium">{payment.guest.name}</div>
@@ -261,7 +242,7 @@ const PaymentHistory = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="px-6 py-4 text-center text-slate-500">
+                    <td colSpan="5" className="px-6 py-4 text-center text-slate-500">
                       No completed payments found matching your filters
                     </td>
                   </tr>
@@ -310,12 +291,6 @@ const PaymentHistory = () => {
                       <div className="font-mono text-blue-600 font-semibold">{payment.id}</div>
                     </div>
 
-                    {/* Related Tour */}
-                    <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="text-sm text-green-700">Related Tour</div>
-                      <div className="font-mono text-green-600 font-semibold">{payment.tourId}</div>
-                    </div>
-
                     {/* Guest Details */}
                     <div className="space-y-4 mb-6">
                       <h4 className="font-semibold text-slate-800 text-lg border-b border-gray-100 pb-2">Guest Information</h4>
@@ -352,28 +327,9 @@ const PaymentHistory = () => {
                         </div>
                         
                         <div>
-                          <span className="text-sm text-slate-600">Payment Method:</span>
-                          <div className="font-semibold text-slate-800">{payment.method}</div>
-                        </div>
-                        
-                        <div>
                           <span className="text-sm text-slate-600">Amount Paid:</span>
                           <div className="font-bold text-green-600 text-lg">{formatAmount(payment.amount)}</div>
                         </div>
-                        
-                        {payment.cardLastFour && (
-                          <div>
-                            <span className="text-sm text-slate-600">Card Last 4:</span>
-                            <div className="font-semibold text-slate-800">•••• {payment.cardLastFour}</div>
-                          </div>
-                        )}
-                        
-                        {payment.bankReference && (
-                          <div>
-                            <span className="text-sm text-slate-600">Bank Reference:</span>
-                            <div className="font-semibold text-slate-800">{payment.bankReference}</div>
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -382,7 +338,7 @@ const PaymentHistory = () => {
                       <h4 className="font-semibold text-slate-800 text-lg border-b border-gray-100 pb-2">Tour Information</h4>
                       
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
+                        <div className="col-span-2">
                           <span className="text-sm text-slate-600">Tour Name:</span>
                           <div className="font-semibold text-slate-800">{payment.guest.tour}</div>
                         </div>
@@ -397,7 +353,7 @@ const PaymentHistory = () => {
                           <div className="font-semibold text-slate-800">{payment.participants}</div>
                         </div>
                         
-                        <div>
+                        <div className="col-span-2">
                           <span className="text-sm text-slate-600">Pickup Location:</span>
                           <div className="font-semibold text-slate-800">{payment.pickupLocation}</div>
                         </div>

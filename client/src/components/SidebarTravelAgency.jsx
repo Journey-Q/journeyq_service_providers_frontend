@@ -102,7 +102,7 @@ const SidebarTravelAgency = () => {
   const navigationItems = [
     { path: '/travel-agency/dashboard', icon: FiHome, label: 'Dashboard' },
     { path: '/travel-agency/booking-history', icon: FiCalendar, label: 'Booking History' },
-    { path: '/travel-agency/payment-history', icon: FiDollarSign, label: 'Payment History' },
+    // { path: '/travel-agency/payment-history', icon: FiDollarSign, label: 'Payment History' },
     { path: '/travel-agency/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
     { path: '/travel-agency/vehicles', icon: FiTruck, label: 'Vehicles' },
     { path: '/travel-agency/drivers', icon: FiUsers, label: 'Drivers' },

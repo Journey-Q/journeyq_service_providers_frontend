@@ -102,7 +102,7 @@ const SidebarTourGuide = () => {
   const navigationItems = [
     { path: '/tour-guide/dashboard', icon: FiHome, label: 'Dashboard' },
     { path: '/tour-guide/booking-history', icon: FiCalendar, label: 'Booking History' },
-    { path: '/tour-guide/payment-history', icon: FiDollarSign, label: 'Payment History' },
+    // { path: '/tour-guide/payment-history', icon: FiDollarSign, label: 'Payment History' },
     { path: '/tour-guide/bankdetails', icon: AiOutlineBank, label: 'Bank Details' },
     { path: '/tour-guide/tours', icon: FiMap, label: 'Tour Packages' },
     { path: '/tour-guide/promotions', icon: FiTag, label: 'Promotions' },
