@@ -3,7 +3,7 @@ import { Upload, Calendar, Clock, X, AlertTriangle, Loader2 } from 'lucide-react
 import PromotionService from '../../api_service/PromotionService';
 import CloudinaryStorageService from '../../api_service/Cloudinaryservice';
 
-const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSubmit, onPromotionAdded, onPromotionUpdated }) => {
+const InsertEditPromotion = ({ showModal, closeModal, handleSubmit, onPromotionAdded }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,20 +20,9 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Initialize form when editingPromotion changes
+  // Initialize form when modal opens
   useEffect(() => {
-    if (editingPromotion) {
-      setFormData({
-        title: editingPromotion.title || '',
-        description: editingPromotion.description || '',
-        image: editingPromotion.image || '',
-        discount: editingPromotion.discount?.toString() || '',
-        validFrom: editingPromotion.validFrom || '',
-        validTo: editingPromotion.validTo || '',
-        isActive: editingPromotion.isActive !== undefined ? editingPromotion.isActive : true
-      });
-      setImageFile(null);
-    } else {
+    if (showModal) {
       setFormData({
         title: '',
         description: '',
@@ -44,10 +33,10 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
         isActive: true
       });
       setImageFile(null);
+      setError('');
+      setUploadProgress('');
     }
-    setError('');
-    setUploadProgress('');
-  }, [editingPromotion, showModal]);
+  }, [showModal]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -96,7 +85,7 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
         const fileName = CloudinaryStorageService.generateFileName(
           imageFile.name,
           serviceProviderId,
-          editingPromotion?.id || 0
+          0
         );
         promotionImageUrl = await CloudinaryStorageService.uploadImage(imageFile, fileName);
         
@@ -121,11 +110,6 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
       validTo: formData.validTo,
       isActive: formData.isActive
     };
-
-    // If editing, include the promotion ID
-    if (editingPromotion) {
-      apiData.id = editingPromotion.id;
-    }
 
     console.log('API Data to be sent:', apiData);
     return apiData;
@@ -156,7 +140,7 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
       setError('Valid to date must be after valid from date');
       return false;
     }
-    if (!editingPromotion && !imageFile) {
+    if (!imageFile) {
       setError('Please upload an image for the promotion');
       return false;
     }
@@ -194,33 +178,23 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
       setUploadProgress('Preparing promotion data...');
       const apiData = await preparePromotionDataForAPI(serviceProviderId);
       
-      setUploadProgress(editingPromotion ? 'Updating promotion...' : 'Creating promotion...');
+      setUploadProgress('Creating promotion...');
       
-      let response;
-      if (editingPromotion) {
-        // Update existing promotion
-        response = await PromotionService.updatePromotion(apiData);
-        if (onPromotionUpdated) {
-          onPromotionUpdated(response);
-        }
-      } else {
-        // Create new promotion
-        response = await PromotionService.createPromotion(apiData);
-        if (onPromotionAdded) {
-          onPromotionAdded(response);
-        }
+      const response = await PromotionService.createPromotion(apiData);
+      if (onPromotionAdded) {
+        onPromotionAdded(response);
       }
       
-      console.log('Promotion operation successful:', response);
-      setUploadProgress(editingPromotion ? 'Promotion updated successfully! 🎉' : 'Promotion created successfully! 🎉');
+      console.log('Promotion created successfully:', response);
+      setUploadProgress('Promotion created successfully! 🎉');
 
       setTimeout(() => {
         closeModal();
       }, 1500);
 
     } catch (apiError) {
-      console.error('Error with promotion operation:', apiError);
-      setError(apiError.message || `Failed to ${editingPromotion ? 'update' : 'create'} promotion. Please try again.`);
+      console.error('Error creating promotion:', apiError);
+      setError(apiError.message || 'Failed to create promotion. Please try again.');
       setUploadProgress('');
     } finally {
       setIsSubmitting(false);
@@ -235,7 +209,7 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">
-              {editingPromotion ? 'Edit Promotion' : 'Create New Promotion'}
+              Create New Promotion
             </h2>
             <button
               onClick={closeModal}
@@ -303,7 +277,7 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
           {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Promotion Image {!editingPromotion && '*'}
+              Promotion Image *
             </label>
             <div 
               className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#0088cc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -399,19 +373,17 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
           </div>
 
           {/* Info Message */}
-          {!editingPromotion && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start">
-                <Clock className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-medium text-blue-800">Admin Approval Required</h4>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Your promotion will be submitted for admin approval. You'll be able to manage it once approved.
-                  </p>
-                </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <Clock className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-medium text-blue-800">Admin Approval Required</h4>
+                <p className="text-xs text-blue-700 mt-1">
+                  Your promotion will be submitted for admin approval. You'll be able to manage it once approved.
+                </p>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Submit Buttons */}
           <div className="flex space-x-4 pt-4">
@@ -432,10 +404,10 @@ const InsertEditPromotion = ({ showModal, closeModal, editingPromotion, handleSu
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {editingPromotion ? 'Updating...' : 'Submitting...'}
+                  Submitting...
                 </>
               ) : (
-                editingPromotion ? 'Update Promotion' : 'Submit for Approval'
+                'Submit for Approval'
               )}
             </button>
           </div>

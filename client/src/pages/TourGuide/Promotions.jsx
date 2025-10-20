@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Calendar, Eye, EyeOff, Star, CreditCard, Check, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Calendar, Eye, EyeOff, Star, CreditCard, Check, Clock, AlertCircle } from 'lucide-react';
 import Sidebar from '../../components/SidebarTourGuide';
 import PaymentModal from './Payment';
 import InsertEditPromotion from './InsertEditPromotion';
@@ -12,10 +12,10 @@ const Promotions = () => {
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPromotionForPayment, setSelectedPromotionForPayment] = useState(null);
-  const [editingPromotion, setEditingPromotion] = useState(null);
 
   // Get service provider ID from localStorage or context (adjust based on your auth setup)
-  const serviceProviderId = localStorage.getItem('serviceProviderId') || '33'; // Fallback to 33 for demo
+const serviceProvider = localStorage.getItem('serviceProvider');
+  const serviceProviderId = serviceProvider ? JSON.parse(serviceProvider).id : null;
 
   // Fetch promotions from backend
   const fetchPromotions = async () => {
@@ -56,42 +56,24 @@ const Promotions = () => {
     promotion.status?.toLowerCase() === 'advertised'
   );
 
-  const openModal = (promotion = null) => {
-    setEditingPromotion(promotion);
+  const openModal = () => {
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setEditingPromotion(null);
   };
 
-  const handleSubmit = async (formData, isEditing) => {
+  const handleSubmit = async (formData) => {
     try {
-      if (isEditing) {
-        // Update existing promotion - you'll need to implement update in your service
-        // For now, we'll delete and create new (replace with proper update when available)
-        await PromotionService.deletePromotion(editingPromotion.id);
-        const newPromotion = await PromotionService.createPromotion({
-          ...formData,
-          serviceProviderId: parseInt(serviceProviderId)
-        });
-        
-        setPromotions(prev => prev.map(promo => 
-          promo.id === editingPromotion.id ? newPromotion : promo
-        ));
-        
-        alert('Promotion updated successfully!');
-      } else {
-        // Add new promotion
-        const newPromotion = await PromotionService.createPromotion({
-          ...formData,
-          serviceProviderId: parseInt(serviceProviderId)
-        });
-        
-        setPromotions(prev => [...prev, newPromotion]);
-        alert('Promotion submitted for admin approval!');
-      }
+      // Add new promotion
+      const newPromotion = await PromotionService.createPromotion({
+        ...formData,
+        serviceProviderId: parseInt(serviceProviderId)
+      });
+      
+      setPromotions(prev => [...prev, newPromotion]);
+      alert('Promotion submitted for admin approval!');
       
       closeModal();
     } catch (err) {
@@ -239,7 +221,7 @@ const Promotions = () => {
           {/* Header */}
           <div className="flex justify-end items-center mb-8">
             <button
-              onClick={() => openModal()}
+              onClick={openModal}
               className="bg-[#0B9ED9] text-white px-6 py-3 rounded-lg hover:bg-[#0077bb] transition-colors flex items-center space-x-2 shadow-md"
             >
               <Plus className="w-5 h-5" />
@@ -327,7 +309,7 @@ const Promotions = () => {
                       {rejectedPromotions.length} promotion{rejectedPromotions.length > 1 ? 's' : ''} rejected
                     </h3>
                     <p className="text-xs text-red-700 mt-1">
-                      These promotions were not approved. You can edit and resubmit them.
+                      These promotions were not approved. You can create new ones.
                     </p>
                   </div>
                 </div>
@@ -420,13 +402,6 @@ const Promotions = () => {
                     )}
                     
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => openModal(promotion)}
-                        className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-1"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                        <span>Edit</span>
-                      </button>
                       {promotion.status?.toLowerCase() === 'advertised' && (
                         <button
                           onClick={() => togglePromotionStatus(promotion.id)}
@@ -466,7 +441,7 @@ const Promotions = () => {
                 Create your first promotion and wait for admin approval to get started.
               </p>
               <button
-                onClick={() => openModal()}
+                onClick={openModal}
                 className="bg-[#0088cc] text-white px-4 py-2 rounded-lg hover:bg-[#0077bb] transition-colors"
               >
                 Create Your First Promotion
@@ -475,11 +450,10 @@ const Promotions = () => {
           )}
         </div>
 
-        {/* Create/Edit Promotion Modal */}
+        {/* Create Promotion Modal */}
         <InsertEditPromotion
           showModal={showModal}
           closeModal={closeModal}
-          editingPromotion={editingPromotion}
           handleSubmit={handleSubmit}
         />
 

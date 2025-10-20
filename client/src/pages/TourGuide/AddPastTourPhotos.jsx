@@ -15,7 +15,7 @@ const AddPastTourPhotos = ({ showModal, setShowModal, tour, onSavePhotos }) => {
   // Reset state when modal opens/closes or tour changes
   useEffect(() => {
     if (showModal && tour) {
-      setExistingPhotos(tour.pastTourImages || []);
+      loadExistingPhotos();
       setNewPhotos([]);
       setNewPhotoPreviews([]);
       setPhotosToRemove([]);
@@ -23,6 +23,17 @@ const AddPastTourPhotos = ({ showModal, setShowModal, tour, onSavePhotos }) => {
       setUploadProgress('');
     }
   }, [showModal, tour]);
+
+  // Load existing photos using the dedicated endpoint
+  const loadExistingPhotos = async () => {
+    try {
+      const photos = await TourPackageService.getPastTourImages(tour.id);
+      setExistingPhotos(photos || []);
+    } catch (error) {
+      console.error('Error loading existing photos:', error);
+      setExistingPhotos(tour.pastTourImages || []); // Fallback to tour data
+    }
+  };
 
   const handleNewPhotosUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -96,6 +107,17 @@ const AddPastTourPhotos = ({ showModal, setShowModal, tour, onSavePhotos }) => {
     setError('');
   };
 
+  const getServiceProviderId = () => {
+    const serviceProvider = localStorage.getItem('serviceProvider');
+    try {
+      const providerData = serviceProvider ? JSON.parse(serviceProvider) : null;
+      return providerData?.id || null;
+    } catch (error) {
+      console.error('Error parsing service provider:', error);
+      return null;
+    }
+  };
+
   const handleSave = async () => {
     const currentTotal = existingPhotos.length - photosToRemove.length + newPhotos.length;
     
@@ -113,23 +135,15 @@ const AddPastTourPhotos = ({ showModal, setShowModal, tour, onSavePhotos }) => {
     setError('');
 
     try {
-      // Get service provider ID from localStorage
-      const serviceProvider = localStorage.getItem('serviceProvider');
-      let serviceProviderId;
-
-      try {
-        const providerData = serviceProvider ? JSON.parse(serviceProvider) : null;
-        serviceProviderId = providerData?.id;
-        if (!serviceProviderId) {
-          throw new Error('Service Provider ID not found. Please login again.');
-        }
-      } catch (parseError) {
-        throw new Error('Error reading user data. Please login again.');
+      // Get service provider ID
+      const serviceProviderId = getServiceProviderId();
+      if (!serviceProviderId) {
+        throw new Error('Service Provider ID not found. Please login again.');
       }
 
       let uploadedUrls = [];
       
-      // Upload new photos if any
+      // STEP 1: Upload new photos to Cloudinary
       if (newPhotos.length > 0) {
         setUploadProgress(`Uploading ${newPhotos.length} photo(s) to Cloudinary...`);
         
@@ -146,47 +160,26 @@ const AddPastTourPhotos = ({ showModal, setShowModal, tour, onSavePhotos }) => {
         console.log('Images uploaded successfully to Cloudinary:', uploadedUrls);
       }
 
-      setUploadProgress('Updating tour package...');
+      // STEP 2: Remove photos marked for deletion
+      if (photosToRemove.length > 0) {
+        setUploadProgress(`Removing ${photosToRemove.length} photo(s)...`);
+        
+        const deletePromises = photosToRemove.map(photoId => 
+          TourPackageService.deletePastTourImage(photoId)
+        );
+        
+        await Promise.all(deletePromises);
+        console.log('Photos removed successfully:', photosToRemove);
+      }
 
-      // Filter out photos marked for removal
-      const remainingExistingPhotos = existingPhotos.filter(
-        photo => !photosToRemove.includes(photo.id)
-      );
+      // STEP 3: Add new photos using the dedicated endpoint
+      if (uploadedUrls.length > 0) {
+        setUploadProgress(`Adding ${uploadedUrls.length} new photo(s)...`);
+        
+        await TourPackageService.addPastTourImages(tour.id, uploadedUrls);
+        console.log('New photos added successfully');
+      }
 
-      // Calculate the next orderIndex
-      const maxOrderIndex = remainingExistingPhotos.length > 0 
-        ? Math.max(...remainingExistingPhotos.map(img => img.orderIndex))
-        : -1;
-
-      // Create new image objects with proper structure
-      const newImageObjects = uploadedUrls.map((url, index) => ({
-        imageUrl: url,
-        orderIndex: maxOrderIndex + 1 + index
-      }));
-
-      // Combine remaining existing and new images
-      const allImages = [...remainingExistingPhotos, ...newImageObjects];
-
-      // Get the current tour data from backend
-      const response = await fetch(
-        `${TourPackageService.BASE_URL}/${tour.id}`,
-        {
-          method: "GET",
-          headers: TourPackageService.getAuthHeaders(),
-        }
-      );
-      const currentTour = await TourPackageService.handleResponse(response);
-
-      // Prepare update data with new pastTourImages
-      const updateData = {
-        ...currentTour,
-        pastTourImages: allImages
-      };
-
-      // Update the tour with new images
-      await TourPackageService.updateTourPackage(tour.id, updateData);
-      
-      console.log('Photos updated successfully');
       setUploadProgress('Photos saved successfully! 🎉');
 
       // Callback to parent component

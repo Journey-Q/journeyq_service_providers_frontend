@@ -19,8 +19,10 @@ import {
   Coffee,
   Utensils,
   Waves,
+  Loader2,
 } from "lucide-react";
 import HotelProfileService from "../../api_service/HotelProfile";
+import CloudinaryStorageService from "../../api_service/Cloudinaryservice";
 
 const Settings = () => {
   const [profileData, setProfileData] = useState(null);
@@ -39,6 +41,10 @@ const Settings = () => {
   const [showDeleteSection, setShowDeleteSection] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Load hotel profile data on component mount
   useEffect(() => {
@@ -50,11 +56,14 @@ const Settings = () => {
       setLoading(true);
       setError(null);
 
-      // Get the serviceProviderId (you may need to get this from localStorage or auth context)
       const serviceProvider = localStorage.getItem("serviceProvider");
       const serviceProviderId = serviceProvider
         ? JSON.parse(serviceProvider).id
         : null;
+
+      if (!serviceProviderId) {
+        throw new Error("Service Provider ID not found. Please login again.");
+      }
 
       const data = await HotelProfileService.getHotelProfileById(
         serviceProviderId
@@ -135,29 +144,118 @@ const Settings = () => {
     setSecuritySettings((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    setError("");
+
+    if (!file) return;
+
+    try {
+      CloudinaryStorageService.validateFile(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+        setImageFile(file);
+      };
+      reader.onerror = () => {
+        throw new Error("Failed to read file");
+      };
+      reader.readAsDataURL(file);
+    } catch (uploadError) {
+      setError(uploadError.message);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    const fileInput = document.getElementById("hotel-image-input");
+    if (fileInput) fileInput.value = "";
+  };
+
   const saveProfile = async () => {
     try {
+      setIsSaving(true);
+      setError("");
+      setUploadProgress("");
+
+      let hotelPhotoUrl = profileData.hotelPhoto;
+
+      // Upload new image if selected
+      if (imageFile) {
+        try {
+          setUploadProgress("Uploading hotel image...");
+          
+          const fileName = CloudinaryStorageService.generateFileName(
+            imageFile.name,
+            profileData.serviceProviderId,
+            0
+          );
+          
+          hotelPhotoUrl = await CloudinaryStorageService.uploadImage(
+            imageFile,
+            fileName
+          );
+          
+          console.log("Image uploaded successfully:", hotelPhotoUrl);
+          setUploadProgress("Image uploaded successfully!");
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
+      }
+
+      setUploadProgress("Updating profile...");
+
       const updateData = {
-        hotelName: profileData.hotelName,
-        location: profileData.location,
+        hotelName: profileData.hotelName.trim(),
+        location: profileData.location.trim(),
         coordinates: profileData.coordinates,
-        description: profileData.description,
-        hotelPhoto: profileData.hotelPhoto,
+        description: profileData.description.trim(),
+        hotelPhoto: hotelPhotoUrl,
         amenities: profileData.amenities,
-        contactInfo: profileData.contactInfo,
+        contactInfo: {
+          email: profileData.contactInfo?.email?.trim() || "",
+          phone: profileData.contactInfo?.phone?.trim() || "",
+        },
       };
 
       await HotelProfileService.updateHotelProfile(
         profileData.serviceProviderId,
         updateData
       );
+
+      setUploadProgress("Profile updated successfully!");
+      
+      // Reset edit state
       setIsEditingProfile(false);
-      alert("Profile updated successfully!");
-      fetchHotelProfile(); // Refresh data
+      setImageFile(null);
+      setImagePreview(null);
+      
+      // Refresh data
+      setTimeout(() => {
+        fetchHotelProfile();
+        setUploadProgress("");
+      }, 1500);
+
     } catch (err) {
       console.error("Error updating profile:", err);
-      alert("Failed to update profile: " + err.message);
+      setError(err.message || "Failed to update profile");
+      setUploadProgress("");
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingProfile(false);
+    setImageFile(null);
+    setImagePreview(null);
+    setError("");
+    setUploadProgress("");
+    fetchHotelProfile(); // Reset to original data
   };
 
   const handleDeleteAccount = async () => {
@@ -172,6 +270,8 @@ const Settings = () => {
         setShowDeleteSection(false);
         setDeleteConfirmation("");
         // Redirect to login or home page
+        localStorage.clear();
+        window.location.href = "/login";
       } catch (err) {
         alert("Failed to delete account: " + err.message);
       }
@@ -217,7 +317,7 @@ const Settings = () => {
     );
   }
 
-  if (error) {
+  if (error && !profileData) {
     return (
       <div className="flex h-screen">
         <Sidebar />
@@ -256,6 +356,30 @@ const Settings = () => {
 
       <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center space-x-2">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          {/* Progress Message */}
+          {uploadProgress && (
+            <div
+              className={`mb-4 p-3 rounded-lg flex items-center space-x-2 ${
+                uploadProgress.includes("successfully")
+                  ? "bg-green-100 border border-green-400 text-green-700"
+                  : "bg-blue-100 border border-blue-400 text-blue-700"
+              }`}
+            >
+              {!uploadProgress.includes("successfully") && (
+                <Loader2 className="w-5 h-5 mr-2 flex-shrink-0 animate-spin" />
+              )}
+              <p className="text-sm font-medium">{uploadProgress}</p>
+            </div>
+          )}
+
           {/* Profile Section */}
           <div className="bg-white rounded-xl shadow-md mb-8 border border-gray-100">
             <div className="p-6 border-b border-gray-200">
@@ -274,8 +398,15 @@ const Settings = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => setIsEditingProfile(!isEditingProfile)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 ${
+                  onClick={() => {
+                    if (isEditingProfile) {
+                      handleCancelEdit();
+                    } else {
+                      setIsEditingProfile(true);
+                    }
+                  }}
+                  disabled={isSaving}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 disabled:opacity-50 ${
                     isEditingProfile
                       ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       : "bg-[#0088cc] text-white hover:bg-[#0077bb]"
@@ -304,28 +435,64 @@ const Settings = () => {
                     <div className="relative">
                       <img
                         src={
+                          imagePreview ||
                           profileData.hotelPhoto ||
                           "https://via.placeholder.com/150"
                         }
                         alt="Hotel"
                         className="w-24 h-24 rounded-lg object-cover"
                       />
-                      <button className="absolute bottom-0 right-0 bg-[#0088cc] text-white p-2 rounded-full shadow-md transform translate-x-1 translate-y-1 hover:bg-[#0077bb]">
+                      <input
+                        id="hotel-image-input"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={isSaving}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          document.getElementById("hotel-image-input").click()
+                        }
+                        disabled={isSaving}
+                        className="absolute bottom-0 right-0 bg-[#0088cc] text-white p-2 rounded-full shadow-md transform translate-x-1 translate-y-1 hover:bg-[#0077bb] disabled:opacity-50"
+                      >
                         <Camera className="w-4 h-4" />
                       </button>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Hotel Image</p>
-                      <button className="text-[#0088cc] text-sm font-medium">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          document.getElementById("hotel-image-input").click()
+                        }
+                        disabled={isSaving}
+                        className="text-[#0088cc] text-sm font-medium hover:text-[#0077bb] disabled:opacity-50"
+                      >
                         Change Image
                       </button>
+                      {imageFile && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          disabled={isSaving}
+                          className="ml-3 text-red-600 text-sm font-medium hover:text-red-800 disabled:opacity-50"
+                        >
+                          Remove
+                        </button>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Max 10MB • JPEG, PNG, WebP
+                      </p>
                     </div>
                   </div>
 
                   {/* Hotel Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Hotel Name
+                      Hotel Name *
                     </label>
                     <input
                       type="text"
@@ -333,7 +500,9 @@ const Settings = () => {
                       onChange={(e) =>
                         handleProfileChange("hotelName", e.target.value)
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
+                      disabled={isSaving}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none disabled:bg-gray-100"
                     />
                   </div>
 
@@ -341,7 +510,7 @@ const Settings = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
+                        Email *
                       </label>
                       <input
                         type="email"
@@ -349,12 +518,14 @@ const Settings = () => {
                         onChange={(e) =>
                           handleContactChange("email", e.target.value)
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
+                        disabled={isSaving}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none disabled:bg-gray-100"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone
+                        Phone *
                       </label>
                       <input
                         type="tel"
@@ -362,7 +533,9 @@ const Settings = () => {
                         onChange={(e) =>
                           handleContactChange("phone", e.target.value)
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
+                        disabled={isSaving}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none disabled:bg-gray-100"
                       />
                     </div>
                   </div>
@@ -370,7 +543,7 @@ const Settings = () => {
                   {/* Location with Google Places Autocomplete */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location
+                      Location *
                     </label>
                     <input
                       id="location-search"
@@ -379,7 +552,9 @@ const Settings = () => {
                       onChange={(e) =>
                         handleProfileChange("location", e.target.value)
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none"
+                      disabled={isSaving}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none disabled:bg-gray-100"
                       placeholder="Search for your hotel location"
                     />
                     {profileData.coordinates && (
@@ -391,7 +566,6 @@ const Settings = () => {
                   </div>
 
                   {/* Amenities */}
-                  {/* Amenities */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Amenities
@@ -399,18 +573,19 @@ const Settings = () => {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {availableAmenities.map((amenity, index) => (
                         <div
-                          key={`amenity-edit-${index}`} // Use index to ensure unique keys
+                          key={`amenity-edit-${index}`}
                           className="flex items-center space-x-2"
                         >
                           <input
                             type="checkbox"
-                            id={`amenity-${index}`} // Unique ID for each checkbox
+                            id={`amenity-${index}`}
                             checked={profileData.amenities?.includes(amenity)}
                             onChange={() => handleAmenityToggle(amenity)}
-                            className="w-4 h-4 text-[#0088cc] rounded focus:ring-[#0088cc]"
+                            disabled={isSaving}
+                            className="w-4 h-4 text-[#0088cc] rounded focus:ring-[#0088cc] disabled:opacity-50"
                           />
                           <label
-                            htmlFor={`amenity-${index}`} // Match the unique ID
+                            htmlFor={`amenity-${index}`}
                             className="text-sm text-gray-700 flex items-center"
                           >
                             {getAmenityIcon(amenity)} {amenity}
@@ -430,8 +605,9 @@ const Settings = () => {
                       onChange={(e) =>
                         handleProfileChange("description", e.target.value)
                       }
+                      disabled={isSaving}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none resize-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#0088cc] focus:outline-none resize-none disabled:bg-gray-100"
                     />
                   </div>
 
@@ -439,10 +615,20 @@ const Settings = () => {
                   <div className="flex justify-end">
                     <button
                       onClick={saveProfile}
-                      className="bg-[#0088cc] text-white px-6 py-2 rounded-lg hover:bg-[#0077bb] transition-colors flex items-center space-x-2"
+                      disabled={isSaving}
+                      className="bg-[#0088cc] text-white px-6 py-2 rounded-lg hover:bg-[#0077bb] transition-colors flex items-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                      <Save className="w-4 h-4" />
-                      <span>Save Changes</span>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          <span>Save Changes</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -526,7 +712,7 @@ const Settings = () => {
                         <div className="flex flex-wrap gap-3">
                           {profileData.amenities?.map((amenity, index) => (
                             <span
-                              key={`amenity-display-${index}`} // Use index to ensure unique keys
+                              key={`amenity-display-${index}`}
                               className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm"
                             >
                               {getAmenityIcon(amenity)} {amenity}

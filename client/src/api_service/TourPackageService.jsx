@@ -104,46 +104,118 @@ const TourPackageService = {
     }
   },
 
-  // Add past tour photos to existing tour
-  async addPastTourPhotos(tourPackageId, imageUrls) {
+  // PAST TOUR IMAGES ENDPOINTS
+
+  // Add past tour images for a tour
+  async addPastTourImages(tourId, imageUrls) {
     try {
-      // First, get the existing tour data
-      const response = await fetch(`${this.BASE_URL}/${tourPackageId}`, {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      });
-      const existingTour = await this.handleResponse(response);
+      if (!imageUrls || imageUrls.length === 0) {
+        throw new Error("At least one image URL is required");
+      }
 
-      // Get existing pastTourImages or initialize empty array
-      const existingImages = existingTour.pastTourImages || [];
-      
-      // Calculate the next orderIndex
-      const maxOrderIndex = existingImages.length > 0 
-        ? Math.max(...existingImages.map(img => img.orderIndex))
-        : -1;
-
-      // Create new image objects with proper structure
-      const newImages = imageUrls.map((url, index) => ({
-        imageUrl: url,
-        orderIndex: maxOrderIndex + 1 + index
-      }));
-
-      // Combine existing and new images
-      const allImages = [...existingImages, ...newImages];
-
-      // Prepare update data - only send the fields needed for the update
-      const updateData = {
-        ...existingTour,
-        pastTourImages: allImages
+      // Send all image URLs in a single request as an array
+      const requestBody = {
+        imageUrls: imageUrls
       };
 
-      // Update the tour with new images
-      return await this.updateTourPackage(tourPackageId, updateData);
+      console.log('Sending past tour images request:', {
+        tourId,
+        imageUrls,
+        requestBody
+      });
+
+      const response = await fetch(`${this.BASE_URL}/${tourId}/past-images`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(requestBody),
+      });
+      
+      const result = await this.handleResponse(response);
+      console.log('Past tour images added successfully:', result);
+      return result;
     } catch (error) {
-      console.error("Error adding past tour photos:", error);
+      console.error("Error adding past tour images:", error);
       throw error;
     }
   },
+
+  // Get all past tour images for a tour
+  async getPastTourImages(tourId) {
+    try {
+      const response = await fetch(`${this.BASE_URL}/${tourId}/past-images`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      });
+      const responseData = await this.handleResponse(response);
+      return responseData;
+    } catch (error) {
+      console.error("Error fetching past tour images:", error);
+      throw error;
+    }
+  },
+
+  // Update a specific past tour image
+  async updatePastTourImage(imageId, imageUrl) {
+    try {
+      const response = await fetch(
+        `${this.BASE_URL}/past-images/${imageId}?imageUrl=${encodeURIComponent(imageUrl)}`,
+        {
+          method: "PUT",
+          headers: this.getAuthHeaders(),
+        }
+      );
+      const responseData = await this.handleResponse(response);
+      return responseData;
+    } catch (error) {
+      console.error("Error updating past tour image:", error);
+      throw error;
+    }
+  },
+
+  // Delete a specific past tour image
+  async deletePastTourImage(imageId) {
+    try {
+      const response = await fetch(`${this.BASE_URL}/past-images/${imageId}`, {
+        method: "DELETE",
+        headers: this.getAuthHeaders(),
+      });
+      const responseData = await this.handleResponse(response);
+      return responseData;
+    } catch (error) {
+      console.error("Error deleting past tour image:", error);
+      throw error;
+    }
+  },
+
+  // Delete all past tour images for a tour
+  async deleteAllPastTourImages(tourId) {
+    try {
+      const response = await fetch(`${this.BASE_URL}/${tourId}/past-images`, {
+        method: "DELETE",
+        headers: this.getAuthHeaders(),
+      });
+      const responseData = await this.handleResponse(response);
+      return responseData;
+    } catch (error) {
+      console.error("Error deleting all past tour images:", error);
+      throw error;
+    }
+  },
+
+  // Get count of past tour images for a tour
+  async getPastTourImagesCount(tourId) {
+    try {
+      const response = await fetch(`${this.BASE_URL}/${tourId}/past-images/count`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      });
+      const responseData = await this.handleResponse(response);
+      return responseData;
+    } catch (error) {
+      console.error("Error fetching past tour images count:", error);
+      throw error;
+    }
+  }
 };
 
 export default TourPackageService;
