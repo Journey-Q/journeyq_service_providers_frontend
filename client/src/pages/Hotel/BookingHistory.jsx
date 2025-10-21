@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/SidebarHotel';
-import HotelBookingService from '../../api_service/HotelBookings';
 import { FiCalendar, FiUser, FiInfo, FiFilter, FiClock, FiCheckCircle, FiXCircle, FiPhone, FiMail, FiUsers, FiAlertCircle, FiHome } from 'react-icons/fi';
 
 const BookingHistory = () => {
@@ -8,6 +7,7 @@ const BookingHistory = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // State for filters
   const [statusFilter, setStatusFilter] = useState('all');
@@ -33,7 +33,22 @@ const BookingHistory = () => {
         throw new Error('Hotel information not found. Please login again.');
       }
 
-      const allBookings = await HotelBookingService.getBookingsByServiceProvider(serviceProviderId);
+      const response = await fetch(
+        `https://serviceprovidersservice-production-8f10.up.railway.app/service/room-bookings/provider/${serviceProviderId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch bookings: ${response.statusText}`);
+      }
+
+      const allBookings = await response.json();
       
       if (Array.isArray(allBookings)) {
         setBookings(allBookings);
@@ -100,36 +115,124 @@ const BookingHistory = () => {
   // Handle confirming a booking
   const handleConfirmBooking = async (bookingId) => {
     try {
+      setActionLoading(true);
       setError(null);
-      await HotelBookingService.confirmBooking(bookingId);
-      await fetchData(); // Refresh data
+      
+      console.log('Confirming booking:', bookingId);
+      
+      const response = await fetch(
+        `https://serviceprovidersservice-production-8f10.up.railway.app/service/room-bookings/${bookingId}/confirm`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+
+      console.log('Confirm response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Confirm error response:', errorText);
+        throw new Error(`Failed to confirm booking: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Confirm success:', result);
+      
+      // Refresh data after successful confirmation
+      await fetchData();
+      setError(null);
     } catch (err) {
       console.error('Error confirming booking:', err);
       setError(err.message || 'Failed to confirm booking');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   // Handle completing a booking (check-out)
   const handleCompleteBooking = async (bookingId) => {
     try {
+      setActionLoading(true);
       setError(null);
-      await HotelBookingService.completeBooking(bookingId);
-      await fetchData(); // Refresh data
+      
+      console.log('Completing booking (checkout):', bookingId);
+      
+      const response = await fetch(
+        `https://serviceprovidersservice-production-8f10.up.railway.app/service/room-bookings/${bookingId}/complete`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+
+      console.log('Complete response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Complete error response:', errorText);
+        throw new Error(`Failed to complete booking: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Complete success:', result);
+      
+      // Refresh data after successful completion
+      await fetchData();
+      setError(null);
     } catch (err) {
       console.error('Error completing booking:', err);
       setError(err.message || 'Failed to complete booking');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   // Handle cancelling a booking
   const handleCancelBooking = async (bookingId) => {
     try {
+      setActionLoading(true);
       setError(null);
-      await HotelBookingService.cancelBooking(bookingId);
-      await fetchData(); // Refresh data
+      
+      console.log('Cancelling booking:', bookingId);
+      
+      const response = await fetch(
+        `https://serviceprovidersservice-production-8f10.up.railway.app/service/room-bookings/${bookingId}/cancel`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+          body: JSON.stringify({})
+        }
+      );
+
+      console.log('Cancel response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Cancel error response:', errorText);
+        throw new Error(`Failed to cancel booking: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Cancel success:', result);
+      
+      // Refresh data after successful cancellation
+      await fetchData();
+      setError(null);
     } catch (err) {
       console.error('Error cancelling booking:', err);
       setError(err.message || 'Failed to cancel booking');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -184,7 +287,6 @@ const BookingHistory = () => {
   };
 
   const getRoomNumber = (roomId) => {
-    // Generate room number based on roomId or use default
     return `Room #${roomId || 'N/A'}`;
   };
 
@@ -194,7 +296,7 @@ const BookingHistory = () => {
         <Sidebar />
         <main className="flex-1 p-6 lg:p-8 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2953A6] mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading bookings...</p>
           </div>
         </main>
@@ -212,13 +314,20 @@ const BookingHistory = () => {
         {error && (
           <div className="mb-6 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg flex items-center">
             <FiAlertCircle className="mr-2 flex-shrink-0" />
-            <span>{error}</span>
+            <span className="flex-1">{error}</span>
             <button 
               onClick={() => setError(null)}
               className="ml-auto text-rose-600 hover:text-rose-800"
             >
               ✕
             </button>
+          </div>
+        )}
+
+        {actionLoading && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            <span>Processing action...</span>
           </div>
         )}
 
@@ -236,7 +345,7 @@ const BookingHistory = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2953A6] focus:border-transparent rounded-md"
+                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-md"
                 >
                   <option value="all">All Statuses</option>
                   {Object.entries(statusConfig).map(([key, config]) => (
@@ -250,7 +359,7 @@ const BookingHistory = () => {
                 <select
                   value={monthFilter}
                   onChange={(e) => setMonthFilter(e.target.value)}
-                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2953A6] focus:border-transparent rounded-md"
+                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-md"
                 >
                   {months.map(month => (
                     <option key={month.value} value={month.value}>{month.label}</option>
@@ -263,7 +372,7 @@ const BookingHistory = () => {
                 <select
                   value={yearFilter}
                   onChange={(e) => setYearFilter(e.target.value)}
-                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2953A6] focus:border-transparent rounded-md"
+                  className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-md"
                 >
                   {years.map(year => (
                     <option key={year} value={year}>{year}</option>
@@ -282,13 +391,12 @@ const BookingHistory = () => {
             </div>
           ) : (
             <table className="w-full min-w-[800px]">
-              <thead className="bg-grey-600 text-[#2953A6] border-b border-gray-200">
+              <thead className="bg-gray-50 text-gray-700 border-b border-gray-200">
                 <tr>
                   <th className="px-4 lg:px-6 py-4 text-left font-medium">#</th>
                   <th className="px-4 lg:px-6 py-4 text-left font-medium">Guest Details</th>
                   <th className="px-4 lg:px-6 py-4 text-left font-medium">Room</th>
                   <th className="px-4 lg:px-6 py-4 text-left font-medium">Dates</th>
-                  {/* <th className="px-4 lg:px-6 py-4 text-left font-medium">Guests</th> */}
                   <th className="px-4 lg:px-6 py-4 text-left font-medium">Amount</th>
                   <th className="px-4 lg:px-6 py-4 text-left font-medium">Status</th>
                   <th className="px-4 lg:px-6 py-4 text-right font-medium">Actions</th>
@@ -316,15 +424,6 @@ const BookingHistory = () => {
                         <span className="text-xs text-gray-400 ml-5">to {formatDate(booking.checkOutDate)}</span>
                       </div>
                     </td>
-                    {/* <td className="px-4 lg:px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <FiUsers className="text-gray-400" />
-                        {booking.numberOfGuests || 1}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {booking.numberOfNights || 1} {booking.numberOfNights === 1 ? 'night' : 'nights'}
-                      </div>
-                    </td> */}
                     <td className="px-4 lg:px-6 py-4 font-medium">
                       {formatAmount(booking.totalAmount)}
                     </td>
@@ -342,30 +441,24 @@ const BookingHistory = () => {
                       <div className="flex flex-wrap justify-end gap-2">
                         {booking.status === 'PENDING' && (
                           <button
-                            className="text-sm bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-md font-medium transition-colors"
+                            className="text-sm bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => handleConfirmBooking(booking.id)}
+                            disabled={actionLoading}
                           >
                             Confirm
                           </button>
                         )}
-                        {booking.status === 'CONFIRMED' && (
-                          <button
-                            className="text-sm bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md font-medium transition-colors"
-                            onClick={() => handleCompleteBooking(booking.id)}
-                          >
-                            Check Out
-                          </button>
-                        )}
                         {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                           <button
-                            className="text-sm bg-rose-500 hover:bg-rose-600 text-white px-3 py-1 rounded-md font-medium transition-colors"
+                            className="text-sm bg-rose-500 hover:bg-rose-600 text-white px-3 py-1 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => handleCancelBooking(booking.id)}
+                            disabled={actionLoading}
                           >
                             Cancel
                           </button>
                         )}
                         <button 
-                          className="inline-flex items-center text-sm text-[#2953A6] hover:text-[#1F74BF] font-medium transition-colors"
+                          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                           onClick={() => setSelectedBooking(booking)}
                         >
                           <FiInfo className="mr-1" /> Details
@@ -399,8 +492,8 @@ const BookingHistory = () => {
                 </div>
 
                 {/* Booking ID */}
-                <div className="mb-4 p-3 bg-[#2953A6]/10 rounded-lg">
-                  <div className="font-mono text-[#2953A6] font-semibold">Booking ID: #{selectedBooking.id}</div>
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="font-mono text-blue-700 font-semibold">Booking ID: #{selectedBooking.id}</div>
                 </div>
 
                 {/* Guest Details */}
@@ -409,20 +502,20 @@ const BookingHistory = () => {
                   
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <FiUser className="text-[#2953A6] w-5 h-5 flex-shrink-0" />
+                      <FiUser className="text-blue-600 w-5 h-5 flex-shrink-0" />
                       <div>
                         <div className="font-semibold text-gray-800">{selectedBooking.customerName || 'N/A'}</div>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <FiMail className="text-[#2953A6] w-5 h-5 flex-shrink-0" />
+                      <FiMail className="text-blue-600 w-5 h-5 flex-shrink-0" />
                       <div className="text-gray-700">{selectedBooking.customerEmail || 'No email'}</div>
                     </div>
                     
                     {selectedBooking.customerPhone && (
                       <div className="flex items-center gap-3">
-                        <FiPhone className="text-[#2953A6] w-5 h-5 flex-shrink-0" />
+                        <FiPhone className="text-blue-600 w-5 h-5 flex-shrink-0" />
                         <div className="text-gray-700">{selectedBooking.customerPhone}</div>
                       </div>
                     )}
@@ -484,7 +577,7 @@ const BookingHistory = () => {
                     
                     <div>
                       <span className="text-sm text-gray-600">Total Amount:</span>
-                      <div className="font-bold text-[#2953A6] text-lg">
+                      <div className="font-bold text-blue-600 text-lg">
                         {formatAmount(selectedBooking.totalAmount)}
                       </div>
                     </div>
@@ -553,7 +646,8 @@ const BookingHistory = () => {
                           handleCancelBooking(selectedBooking.id);
                           setSelectedBooking(null);
                         }}
-                        className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-md transition-colors"
+                        className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={actionLoading}
                       >
                         Cancel Booking
                       </button>
@@ -562,33 +656,24 @@ const BookingHistory = () => {
                           handleConfirmBooking(selectedBooking.id);
                           setSelectedBooking(null);
                         }}
-                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-md transition-colors"
+                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={actionLoading}
                       >
                         Confirm Booking
                       </button>
                     </>
                   )}
                   {selectedBooking.status === 'CONFIRMED' && (
-                    <>
-                      <button
-                        onClick={() => {
-                          handleCancelBooking(selectedBooking.id);
-                          setSelectedBooking(null);
-                        }}
-                        className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-md transition-colors"
-                      >
-                        Cancel Booking
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleCompleteBooking(selectedBooking.id);
-                          setSelectedBooking(null);
-                        }}
-                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
-                      >
-                        Check Out
-                      </button>
-                    </>
+                    <button
+                      onClick={() => {
+                        handleCancelBooking(selectedBooking.id);
+                        setSelectedBooking(null);
+                      }}
+                      className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={actionLoading}
+                    >
+                      Cancel Booking
+                    </button>
                   )}
                 </div>
               </div>

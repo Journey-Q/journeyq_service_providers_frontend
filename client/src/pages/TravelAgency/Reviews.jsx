@@ -137,7 +137,7 @@ const Reviews = () => {
       
       <main className="flex-1 p-6 lg:p-8">
         <header className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">Guest Reviews & Ratings</h1>
+          <p className="text-2xl font-bold text-gray-800">Guest Reviews & Ratings</p>
           <p className="text-gray-600 mt-2">
             View and manage guest feedback for your hotel
           </p>
