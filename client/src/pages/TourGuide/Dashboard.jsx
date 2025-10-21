@@ -18,136 +18,257 @@ import TourBookingService from '../../api_service/TourBookingService';
 import TourPackageService from '../../api_service/TourPackageService';
 import TourPackageReviewService from '../../api_service/TourPackageReviewService';
 
-// Simple Line Chart Component
-const SimpleLineChart = ({ data }) => {
-  if (!data || data.length === 0) return <div className="h-64 flex items-center justify-center text-gray-400">No data available</div>;
+// Beautiful Line Chart Component
+const BeautifulLineChart = ({ data }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-80 flex flex-col items-center justify-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+        <TrendingUp className="w-16 h-16 text-gray-300 mb-4" />
+        <p className="text-lg font-medium">No booking data available</p>
+        <p className="text-sm mt-1">Bookings will appear here once you have activity</p>
+      </div>
+    );
+  }
 
   const maxValue = Math.max(...data.map(d => d.bookings), 1);
-  const width = 100;
-  const height = 250;
-  const padding = { top: 20, right: 20, bottom: 40, left: 40 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
+  const chartHeight = 280;
+  const chartWidth = 600;
+  const padding = { top: 40, right: 40, bottom: 50, left: 60 };
 
   const points = data.map((d, i) => {
-    const x = (i / (data.length - 1)) * chartWidth;
-    const y = chartHeight - (d.bookings / maxValue) * chartHeight;
+    const x = padding.left + (i / (data.length - 1)) * (chartWidth - padding.left - padding.right);
+    const y = chartHeight - padding.bottom - ((d.bookings / maxValue) * (chartHeight - padding.top - padding.bottom));
     return { x, y, value: d.bookings, label: d.date };
   });
 
-  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  const pathData = points.map((point, i) => 
+    `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
+  ).join(' ');
 
   return (
-    <div className="relative" style={{ height: '250px' }}>
-      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-        {/* Grid lines */}
-        {[0, 1, 2, 3, 4].map(i => {
-          const y = padding.top + (chartHeight / 4) * i;
+    <div className="w-full h-80 bg-white rounded-lg p-4">
+      <svg 
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`} 
+        className="w-full h-full"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.1" />
+          </linearGradient>
+          
+          <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        {/* Vertical grid lines */}
+        {points.map((point, i) => (
+          <line
+            key={`v-${i}`}
+            x1={point.x}
+            y1={padding.top}
+            x2={point.x}
+            y2={chartHeight - padding.bottom}
+            stroke="#f8fafc"
+            strokeWidth="1"
+          />
+        ))}
+
+        {/* Horizontal grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+          const y = padding.top + (chartHeight - padding.top - padding.bottom) * ratio;
           return (
             <line
-              key={i}
+              key={`h-${i}`}
               x1={padding.left}
               y1={y}
-              x2={width - padding.right}
+              x2={chartWidth - padding.right}
               y2={y}
-              stroke="#f0f0f0"
-              strokeDasharray="3 3"
+              stroke="#f1f5f9"
+              strokeWidth="1"
             />
           );
         })}
 
-        {/* Line */}
+        {/* Area fill */}
         <path
-          d={pathD}
-          fill="none"
-          stroke="#0ea5e9"
-          strokeWidth="2"
-          transform={`translate(${padding.left}, ${padding.top})`}
+          d={`${pathData} L ${points[points.length-1].x} ${chartHeight - padding.bottom} L ${points[0].x} ${chartHeight - padding.bottom} Z`}
+          fill="url(#areaGradient)"
         />
 
-        {/* Points */}
-        {points.map((p, i) => (
-          <circle
-            key={i}
-            cx={p.x + padding.left}
-            cy={p.y + padding.top}
-            r="4"
-            fill="#0ea5e9"
-          />
+        {/* Main line */}
+        <path
+          d={pathData}
+          fill="none"
+          stroke="url(#lineGradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Data points with glow effect */}
+        {points.map((point, i) => (
+          <g key={i}>
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="6"
+              fill="#ffffff"
+              stroke="#0ea5e9"
+              strokeWidth="3"
+              className="drop-shadow-lg"
+            />
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="8"
+              fill="#0ea5e9"
+              fillOpacity="0.2"
+            />
+          </g>
         ))}
 
         {/* X-axis labels */}
-        {points.map((p, i) => (
+        {points.map((point, i) => (
           <text
             key={i}
-            x={p.x + padding.left}
-            y={height - padding.bottom + 20}
+            x={point.x}
+            y={chartHeight - 20}
             textAnchor="middle"
-            fontSize="10"
-            fill="#6b7280"
+            fontSize="12"
+            fill="#64748b"
+            fontWeight="500"
+            fontFamily="system-ui, -apple-system, sans-serif"
           >
-            {p.label}
+            {point.label}
           </text>
         ))}
 
         {/* Y-axis labels */}
-        {[0, 1, 2, 3, 4].map(i => {
-          const value = Math.round((maxValue / 4) * (4 - i));
-          const y = padding.top + (chartHeight / 4) * i;
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+          const value = Math.round(maxValue * (1 - ratio));
+          const y = padding.top + (chartHeight - padding.top - padding.bottom) * ratio;
           return (
-            <text
-              key={i}
-              x={padding.left - 10}
-              y={y + 4}
-              textAnchor="end"
-              fontSize="10"
-              fill="#6b7280"
-            >
-              {value}
-            </text>
+            <g key={i}>
+              <text
+                x={padding.left - 15}
+                y={y + 4}
+                textAnchor="end"
+                fontSize="12"
+                fill="#64748b"
+                fontWeight="500"
+                fontFamily="system-ui, -apple-system, sans-serif"
+              >
+                {value}
+              </text>
+              <line
+                x1={padding.left - 5}
+                y1={y}
+                x2={padding.left}
+                y2={y}
+                stroke="#cbd5e1"
+                strokeWidth="1"
+              />
+            </g>
           );
         })}
+
+        {/* Chart title */}
+        <text
+          x={chartWidth / 2}
+          y={20}
+          textAnchor="middle"
+          fontSize="14"
+          fill="#1e293b"
+          fontWeight="600"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          Daily Bookings
+        </text>
       </svg>
     </div>
   );
 };
 
-// Simple Bar Chart Component
-const SimpleBarChart = ({ data }) => {
-  if (!data || data.length === 0) return <div className="h-64 flex items-center justify-center text-gray-400">No data available</div>;
+// Beautiful Bar Chart Component
+const BeautifulBarChart = ({ data }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-80 flex flex-col items-center justify-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+        <DollarSign className="w-16 h-16 text-gray-300 mb-4" />
+        <p className="text-lg font-medium">No revenue data available</p>
+        <p className="text-sm mt-1">Revenue will appear here once you have completed tours</p>
+      </div>
+    );
+  }
 
   const maxValue = Math.max(...data.map(d => d.revenue), 0.1);
-  const width = 100;
-  const height = 250;
-  const padding = { top: 20, right: 20, bottom: 40, left: 40 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
-  const barWidth = chartWidth / data.length * 0.6;
+  const chartHeight = 280;
+  const chartWidth = 600;
+  const padding = { top: 40, right: 40, bottom: 50, left: 60 };
+  const barWidth = ((chartWidth - padding.left - padding.right) / data.length) * 0.7;
 
   return (
-    <div className="relative" style={{ height: '250px' }}>
-      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-        {/* Grid lines */}
-        {[0, 1, 2, 3, 4].map(i => {
-          const y = padding.top + (chartHeight / 4) * i;
+    <div className="w-full h-80 bg-white rounded-lg p-4">
+      <svg 
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`} 
+        className="w-full h-full"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#10b981" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#10b981" stopOpacity="0.5" />
+          </linearGradient>
+          
+          <linearGradient id="barHover" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#059669" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#059669" stopOpacity="0.5" />
+          </linearGradient>
+        </defs>
+
+        {/* Vertical grid lines */}
+        {data.map((_, i) => {
+          const x = padding.left + (i / data.length) * (chartWidth - padding.left - padding.right) + 
+                   ((chartWidth - padding.left - padding.right) / data.length) / 2;
           return (
             <line
-              key={i}
+              key={`v-${i}`}
+              x1={x}
+              y1={padding.top}
+              x2={x}
+              y2={chartHeight - padding.bottom}
+              stroke="#f8fafc"
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        {/* Horizontal grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+          const y = padding.top + (chartHeight - padding.top - padding.bottom) * ratio;
+          return (
+            <line
+              key={`h-${i}`}
               x1={padding.left}
               y1={y}
-              x2={width - padding.right}
+              x2={chartWidth - padding.right}
               y2={y}
-              stroke="#f0f0f0"
-              strokeDasharray="3 3"
+              stroke="#f1f5f9"
+              strokeWidth="1"
             />
           );
         })}
 
         {/* Bars */}
         {data.map((d, i) => {
-          const x = padding.left + (i / data.length) * chartWidth + (chartWidth / data.length - barWidth) / 2;
-          const barHeight = (d.revenue / maxValue) * chartHeight;
-          const y = padding.top + chartHeight - barHeight;
+          const x = padding.left + (i / data.length) * (chartWidth - padding.left - padding.right) + 
+                   ((chartWidth - padding.left - padding.right) / data.length - barWidth) / 2;
+          const barHeight = (d.revenue / maxValue) * (chartHeight - padding.top - padding.bottom);
+          const y = chartHeight - padding.bottom - barHeight;
           
           return (
             <g key={i}>
@@ -156,24 +277,41 @@ const SimpleBarChart = ({ data }) => {
                 y={y}
                 width={barWidth}
                 height={barHeight}
-                fill="#10b981"
-                rx="2"
+                fill="url(#barGradient)"
+                rx="6"
+                className="transition-all duration-300 hover:fill-[url(#barHover)] hover:filter hover:brightness-110"
               />
+              
+              {/* Value label on top of bar */}
+              <text
+                x={x + barWidth / 2}
+                y={y - 8}
+                textAnchor="middle"
+                fontSize="11"
+                fill="#059669"
+                fontWeight="600"
+                fontFamily="system-ui, -apple-system, sans-serif"
+              >
+                Rs.{d.revenue.toFixed(1)}K
+              </text>
             </g>
           );
         })}
 
         {/* X-axis labels */}
         {data.map((d, i) => {
-          const x = padding.left + (i / data.length) * chartWidth + (chartWidth / data.length) / 2;
+          const x = padding.left + (i / data.length) * (chartWidth - padding.left - padding.right) + 
+                   ((chartWidth - padding.left - padding.right) / data.length) / 2;
           return (
             <text
               key={i}
               x={x}
-              y={height - padding.bottom + 20}
+              y={chartHeight - 20}
               textAnchor="middle"
-              fontSize="10"
-              fill="#6b7280"
+              fontSize="12"
+              fill="#64748b"
+              fontWeight="500"
+              fontFamily="system-ui, -apple-system, sans-serif"
             >
               {d.date}
             </text>
@@ -181,22 +319,70 @@ const SimpleBarChart = ({ data }) => {
         })}
 
         {/* Y-axis labels */}
-        {[0, 1, 2, 3, 4].map(i => {
-          const value = ((maxValue / 4) * (4 - i)).toFixed(1);
-          const y = padding.top + (chartHeight / 4) * i;
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+          const value = (maxValue * (1 - ratio)).toFixed(1);
+          const y = padding.top + (chartHeight - padding.top - padding.bottom) * ratio;
           return (
-            <text
-              key={i}
-              x={padding.left - 10}
-              y={y + 4}
-              textAnchor="end"
-              fontSize="10"
-              fill="#6b7280"
-            >
-              {value}
-            </text>
+            <g key={i}>
+              <text
+                x={padding.left - 15}
+                y={y + 4}
+                textAnchor="end"
+                fontSize="12"
+                fill="#64748b"
+                fontWeight="500"
+                fontFamily="system-ui, -apple-system, sans-serif"
+              >
+                Rs.{value}K
+              </text>
+              <line
+                x1={padding.left - 5}
+                y1={y}
+                x2={padding.left}
+                y2={y}
+                stroke="#cbd5e1"
+                strokeWidth="1"
+              />
+            </g>
           );
         })}
+
+        {/* Chart title */}
+        <text
+          x={chartWidth / 2}
+          y={20}
+          textAnchor="middle"
+          fontSize="14"
+          fill="#1e293b"
+          fontWeight="600"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          Daily Revenue (in thousands)
+        </text>
+
+        {/* Axis labels */}
+        <text
+          x={chartWidth / 2}
+          y={chartHeight - 5}
+          textAnchor="middle"
+          fontSize="11"
+          fill="#94a3b8"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          Days
+        </text>
+        
+        <text
+          x={10}
+          y={chartHeight / 2}
+          textAnchor="middle"
+          fontSize="11"
+          fill="#94a3b8"
+          fontFamily="system-ui, -apple-system, sans-serif"
+          transform={`rotate(-90, 10, ${chartHeight / 2})`}
+        >
+          Revenue (₹ Thousands)
+        </text>
       </svg>
     </div>
   );
@@ -402,7 +588,13 @@ const DashboardTourGuide = () => {
 
       <div className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
-         
+          {/* Header */}
+          <div className="mb-8">
+            <p className="text-3xl font-bold text-gray-900 mb-2">
+              Dashboard
+            </p>
+            <p className="text-gray-600">Here's what's happening with your tours today.</p>
+          </div>
 
           <div className="mb-6 flex justify-end">
             <div className="flex space-x-2 bg-white p-1 rounded-lg shadow-sm border border-gray-200">
@@ -422,6 +614,7 @@ const DashboardTourGuide = () => {
             </div>
           </div>
 
+          {/* Stats Cards */}
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
@@ -490,18 +683,32 @@ const DashboardTourGuide = () => {
             </div>
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Bookings Trend (Last 7 Days)</h2>
-              <SimpleLineChart data={chartData} />
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-sky-600" />
+                  Bookings Trend
+                </h2>
+                <span className="text-sm text-gray-500 bg-sky-50 px-3 py-1 rounded-full">Last 7 days</span>
+              </div>
+              <BeautifulLineChart data={chartData} />
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Revenue (Last 7 Days, in thousands)</h2>
-              <SimpleBarChart data={chartData} />
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-emerald-600" />
+                  Revenue
+                </h2>
+                <span className="text-sm text-gray-500 bg-emerald-50 px-3 py-1 rounded-full">Last 7 days</span>
+              </div>
+              <BeautifulBarChart data={chartData} />
             </div>
           </div>
 
+          {/* Recent Bookings */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
             <header className="p-5 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -548,9 +755,10 @@ const DashboardTourGuide = () => {
             </div>
           </section>
 
+          {/* Quick Actions */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <Link to="/tour-guide/tours">
                 <button className="w-full p-4 bg-sky-50 hover:bg-sky-100 rounded-xl border border-sky-200 transition-colors flex flex-col items-center">
                   <Map className="w-6 h-6 text-sky-600 mb-2" />
@@ -572,10 +780,10 @@ const DashboardTourGuide = () => {
                 </button>
               </Link>
 
-              <button className="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors flex flex-col items-center">
+              {/* <button className="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors flex flex-col items-center">
                 <DollarSign className="w-6 h-6 text-emerald-600 mb-2" />
                 <span className="text-sm font-medium text-emerald-800">Earnings</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

@@ -61,7 +61,7 @@ const SingleTour = ({ tour, onClose, onEdit, onDelete }) => {
                 </span>
               </div>
               
-              <div className="flex justify-between items-center">
+              {/* <div className="flex justify-between items-center">
                 <span className="text-gray-600">Rating:</span>
                 <div className="flex items-center">
                   <svg className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 24 24">
@@ -69,7 +69,7 @@ const SingleTour = ({ tour, onClose, onEdit, onDelete }) => {
                   </svg>
                   <span className="font-medium">{tour.rating}</span>
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Group Size:</span>

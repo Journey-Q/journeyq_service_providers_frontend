@@ -7,14 +7,18 @@ import PromotionService from '../../api_service/PromotionService';
 
 const Promotions = () => {
   const [promotions, setPromotions] = useState([]);
+  const [filteredPromotions, setFilteredPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPromotionForPayment, setSelectedPromotionForPayment] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [deleting, setDeleting] = useState(null);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState(false);
+  const [promotionToDelete, setPromotionToDelete] = useState(null);
 
-  // Get service provider ID from localStorage or context (adjust based on your auth setup)
-const serviceProvider = localStorage.getItem('serviceProvider');
+  const serviceProvider = localStorage.getItem('serviceProvider');
   const serviceProviderId = serviceProvider ? JSON.parse(serviceProvider).id : null;
 
   // Fetch promotions from backend
@@ -24,6 +28,7 @@ const serviceProvider = localStorage.getItem('serviceProvider');
       setError(null);
       const data = await PromotionService.getPromotionsByServiceProviderId(serviceProviderId);
       setPromotions(data);
+      setFilteredPromotions(data);
     } catch (err) {
       console.error('Error fetching promotions:', err);
       setError(err.message);
@@ -35,6 +40,37 @@ const serviceProvider = localStorage.getItem('serviceProvider');
   useEffect(() => {
     fetchPromotions();
   }, [serviceProviderId]);
+
+  // Apply filter whenever activeFilter or promotions change
+  useEffect(() => {
+    applyFilter(activeFilter);
+  }, [activeFilter, promotions]);
+
+  // Filter promotions by status
+  const applyFilter = (filterType) => {
+    let filtered = [...promotions];
+    
+    switch(filterType) {
+      case 'advertised':
+        filtered = promotions.filter(p => p.status?.toLowerCase() === 'advertised');
+        break;
+      case 'approved':
+        filtered = promotions.filter(p => p.status?.toLowerCase() === 'approved');
+        break;
+      case 'pending':
+        filtered = promotions.filter(p => p.status?.toLowerCase() === 'requested');
+        break;
+      case 'rejected':
+        filtered = promotions.filter(p => p.status?.toLowerCase() === 'rejected');
+        break;
+      case 'all':
+      default:
+        filtered = promotions;
+        break;
+    }
+    
+    setFilteredPromotions(filtered);
+  };
 
   // Filter promotions by status (convert backend status to lowercase for compatibility)
   const approvedPromotions = promotions.filter(promotion => 
@@ -51,7 +87,7 @@ const serviceProvider = localStorage.getItem('serviceProvider');
   );
 
   // Combined approved and advertised for display
-  const managedPromotions = promotions.filter(promotion => 
+  const managedPromotions = filteredPromotions.filter(promotion => 
     promotion.status?.toLowerCase() === 'approved' || 
     promotion.status?.toLowerCase() === 'advertised'
   );
@@ -66,7 +102,6 @@ const serviceProvider = localStorage.getItem('serviceProvider');
 
   const handleSubmit = async (formData) => {
     try {
-      // Add new promotion
       const newPromotion = await PromotionService.createPromotion({
         ...formData,
         serviceProviderId: parseInt(serviceProviderId)
@@ -82,13 +117,11 @@ const serviceProvider = localStorage.getItem('serviceProvider');
     }
   };
 
-  // Open payment modal
   const openPaymentModal = (promotion) => {
     setSelectedPromotionForPayment(promotion);
     setShowPaymentModal(true);
   };
 
-  // Handle successful payment
   const handlePaymentSuccess = (paymentData) => {
     setPromotions(prev => prev.map(promo => 
       promo.id === paymentData.promotionId 
@@ -99,44 +132,55 @@ const serviceProvider = localStorage.getItem('serviceProvider');
     setShowPaymentModal(false);
     setSelectedPromotionForPayment(null);
     
-    // Show success message
     alert(`Payment successful! Your promotion is now being advertised with the ${paymentData.plan} plan.`);
   };
 
   const togglePromotionStatus = async (id) => {
     try {
-      // Find the promotion to toggle
       const promotion = promotions.find(p => p.id === id);
       const updatedStatus = !promotion.isActive;
       
-      // You'll need to implement an update endpoint in your service
-      // For now, we'll just update locally
       setPromotions(prev => prev.map(promo => 
         promo.id === id ? { ...promo, isActive: updatedStatus } : promo
       ));
       
-      // If you had an update endpoint, you would call it here:
-      // await PromotionService.updatePromotion(id, { isActive: updatedStatus });
-      
     } catch (err) {
       console.error('Error toggling promotion status:', err);
       alert(`Error: ${err.message}`);
-      // Revert on error
       fetchPromotions();
     }
   };
 
   const deletePromotion = async (id) => {
-    if (window.confirm('Are you sure you want to delete this promotion?')) {
-      try {
-        await PromotionService.deletePromotion(id);
-        setPromotions(prev => prev.filter(promo => promo.id !== id));
-        alert('Promotion deleted successfully!');
-      } catch (err) {
-        console.error('Error deleting promotion:', err);
-        alert(`Error: ${err.message}`);
-      }
+    setPromotionToDelete(id);
+    setDeleteConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!promotionToDelete) return;
+    
+    try {
+      setDeleting(promotionToDelete);
+      
+      await PromotionService.deletePromotion(promotionToDelete);
+      
+      setPromotions(prev => prev.filter(promo => promo.id !== promotionToDelete));
+      setFilteredPromotions(prev => prev.filter(promo => promo.id !== promotionToDelete));
+      
+      alert('Promotion deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting promotion:', err);
+      alert(`Failed to delete promotion: ${err.message}`);
+    } finally {
+      setDeleting(null);
+      setDeleteConfirmModal(false);
+      setPromotionToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmModal(false);
+    setPromotionToDelete(null);
   };
 
   const getStatusColor = (status) => {
@@ -171,7 +215,6 @@ const serviceProvider = localStorage.getItem('serviceProvider');
     }
   };
 
-  // Format date for display (remove time part if present)
   const formatDate = (dateString) => {
     if (!dateString) return '';
     return dateString.split('T')[0];
@@ -218,7 +261,6 @@ const serviceProvider = localStorage.getItem('serviceProvider');
       
       <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
           <div className="flex justify-end items-center mb-8">
             <button
               onClick={openModal}
@@ -229,9 +271,14 @@ const serviceProvider = localStorage.getItem('serviceProvider');
             </button>
           </div>
 
-          {/* Stats Overview */}
+          {/* Stats Overview with Filters */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div 
+              onClick={() => setActiveFilter('all')}
+              className={`bg-white rounded-xl shadow-md p-6 border cursor-pointer transition-all ${
+                activeFilter === 'all' ? 'border-[#0088cc] ring-2 ring-[#0088cc] ring-opacity-50' : 'border-gray-100 hover:border-[#0088cc]'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Total Promotions</p>
@@ -243,7 +290,12 @@ const serviceProvider = localStorage.getItem('serviceProvider');
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div 
+              onClick={() => setActiveFilter('advertised')}
+              className={`bg-white rounded-xl shadow-md p-6 border cursor-pointer transition-all ${
+                activeFilter === 'advertised' ? 'border-green-600 ring-2 ring-green-600 ring-opacity-50' : 'border-gray-100 hover:border-green-600'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Advertised</p>
@@ -255,7 +307,12 @@ const serviceProvider = localStorage.getItem('serviceProvider');
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div 
+              onClick={() => setActiveFilter('approved')}
+              className={`bg-white rounded-xl shadow-md p-6 border cursor-pointer transition-all ${
+                activeFilter === 'approved' ? 'border-blue-600 ring-2 ring-blue-600 ring-opacity-50' : 'border-gray-100 hover:border-blue-600'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Approved</p>
@@ -267,7 +324,12 @@ const serviceProvider = localStorage.getItem('serviceProvider');
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div 
+              onClick={() => setActiveFilter('pending')}
+              className={`bg-white rounded-xl shadow-md p-6 border cursor-pointer transition-all ${
+                activeFilter === 'pending' ? 'border-yellow-600 ring-2 ring-yellow-600 ring-opacity-50' : 'border-gray-100 hover:border-yellow-600'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Pending</p>
@@ -282,7 +344,6 @@ const serviceProvider = localStorage.getItem('serviceProvider');
 
           {/* Status Notices */}
           <div className="space-y-4 mb-6">
-            {/* Pending Approval Notice */}
             {requestedPromotions.length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-center">
@@ -299,7 +360,6 @@ const serviceProvider = localStorage.getItem('serviceProvider');
               </div>
             )}
 
-            {/* Rejected Notice */}
             {rejectedPromotions.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center">
@@ -316,7 +376,6 @@ const serviceProvider = localStorage.getItem('serviceProvider');
               </div>
             )}
 
-            {/* Approved Notice */}
             {approvedPromotions.length > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center">
@@ -334,17 +393,20 @@ const serviceProvider = localStorage.getItem('serviceProvider');
             )}
           </div>
 
-          {/* Section Title */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-800">My Promotions</h2>
-            <p className="text-sm text-gray-600">Manage your approved and advertised promotions</p>
+            <p className="text-sm text-gray-600">
+              {activeFilter === 'all' ? 'Manage your approved and advertised promotions' : 
+               activeFilter === 'advertised' ? 'Currently advertised promotions' :
+               activeFilter === 'approved' ? 'Approved promotions ready for advertising' :
+               activeFilter === 'pending' ? 'Promotions awaiting approval' :
+               'Rejected promotions'}
+            </p>
           </div>
 
-          {/* Promotions Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {managedPromotions.map((promotion) => (
               <div key={promotion.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
-                {/* Image */}
                 <div className="relative h-48">
                   <img 
                     src={promotion.image} 
@@ -378,18 +440,15 @@ const serviceProvider = localStorage.getItem('serviceProvider');
                   )}
                 </div>
 
-                {/* Content */}
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-800 mb-2">{promotion.title}</h3>
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">{promotion.description}</p>
                   
-                  {/* Date Range */}
                   <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
                     <Calendar className="w-4 h-4" />
                     <span>{formatDate(promotion.validFrom)} to {formatDate(promotion.validTo)}</span>
                   </div>
 
-                  {/* Actions based on status */}
                   <div className="space-y-2">
                     {promotion.status?.toLowerCase() === 'approved' && (
                       <button
@@ -417,9 +476,16 @@ const serviceProvider = localStorage.getItem('serviceProvider');
                       )}
                       <button
                         onClick={() => deletePromotion(promotion.id)}
-                        className="bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors"
+                        disabled={deleting === promotion.id}
+                        className={`bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors ${
+                          deleting === promotion.id ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {deleting === promotion.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-700"></div>
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -428,36 +494,40 @@ const serviceProvider = localStorage.getItem('serviceProvider');
             ))}
           </div>
 
-          {/* Empty state */}
           {managedPromotions.length === 0 && (
             <div className="text-center py-12">
               <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Star className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No approved promotions yet
+                {activeFilter === 'all' ? 'No approved promotions yet' :
+                 activeFilter === 'advertised' ? 'No advertised promotions' :
+                 activeFilter === 'approved' ? 'No approved promotions' :
+                 activeFilter === 'pending' ? 'No pending promotions' :
+                 'No rejected promotions'}
               </h3>
               <p className="text-gray-500 mb-4">
-                Create your first promotion and wait for admin approval to get started.
+                {activeFilter === 'all' ? 'Create your first promotion and wait for admin approval to get started.' :
+                 'No promotions in this category.'}
               </p>
-              <button
-                onClick={openModal}
-                className="bg-[#0088cc] text-white px-4 py-2 rounded-lg hover:bg-[#0077bb] transition-colors"
-              >
-                Create Your First Promotion
-              </button>
+              {activeFilter === 'all' && (
+                <button
+                  onClick={openModal}
+                  className="bg-[#0088cc] text-white px-4 py-2 rounded-lg hover:bg-[#0077bb] transition-colors"
+                >
+                  Create Your First Promotion
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {/* Create Promotion Modal */}
         <InsertEditPromotion
           showModal={showModal}
           closeModal={closeModal}
           handleSubmit={handleSubmit}
         />
 
-        {/* Payment Modal */}
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => {
@@ -467,6 +537,48 @@ const serviceProvider = localStorage.getItem('serviceProvider');
           promotion={selectedPromotionForPayment}
           onPaymentSuccess={handlePaymentSuccess}
         />
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmModal && (
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                  Delete Promotion?
+                </h3>
+                <p className="text-sm text-gray-600 text-center mb-6">
+                  Are you sure you want to delete this promotion? This action cannot be undone.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={cancelDelete}
+                    disabled={deleting}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={deleting}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center"
+                  >
+                    {deleting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
